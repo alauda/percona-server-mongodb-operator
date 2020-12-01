@@ -17,8 +17,7 @@ RUN mkdir -p build/_output/bin \
                cmd/manager/main.go \
     && cp -r build/_output/bin/percona-server-mongodb-operator /usr/local/bin/percona-server-mongodb-operator
 
-FROM registry.access.redhat.com/ubi7/ubi-minimal AS ubi7
-RUN microdnf update && microdnf clean all
+FROM alpine:3.12.1
 
 LABEL name="Percona Server for MongoDB Operator" \
       vendor="Percona" \
