@@ -65,6 +65,8 @@ type PerconaServerMongoDBSpec struct {
 	UpgradeOptions          UpgradeOptions                       `json:"upgradeOptions,omitempty"`
 	SchedulerName           string                               `json:"schedulerName,omitempty"`
 	ClusterServiceDNSSuffix string                               `json:"clusterServiceDNSSuffix,omitempty"`
+	MongodbExporter         MongodbExporterSpec                  `json:"mongodbExporter,omitempty"`
+	PsmdbLogPath            string                               `json:"psmdbLogPath,omitempty"`
 }
 
 const (
@@ -159,6 +161,12 @@ type PMMSpec struct {
 	ServerHost string         `json:"serverHost,omitempty"`
 	Image      string         `json:"image,omitempty"`
 	Resources  *ResourcesSpec `json:"resources,omitempty"`
+}
+
+type MongodbExporterSpec struct {
+	Enabled    bool             `json:"enabled,omitempty"`
+	Image      string           `json:"image,omitempty"`
+	Resources  *ResourcesSpec   `json:"resources,omitempty"`
 }
 
 type MultiAZ struct {

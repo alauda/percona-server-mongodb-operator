@@ -15,6 +15,6 @@ func EntrypointInitContainer(initImageName string) corev1.Container {
 		Image:           initImageName,
 		Name:            "mongo-init",
 		Command:         []string{"/init-entrypoint.sh"},
-		ImagePullPolicy: corev1.PullAlways,
+		ImagePullPolicy: corev1.PullIfNotPresent,
 	}
 }

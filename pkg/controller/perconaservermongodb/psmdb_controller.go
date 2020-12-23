@@ -531,6 +531,17 @@ func (r *ReconcilePerconaServerMongoDB) reconcileStatefulSet(arbiter bool, cr *a
 			sfsSpec.Template.Spec.Containers = append(sfsSpec.Template.Spec.Containers, agentC)
 		}
 
+		if cr.Spec.MongodbExporter.Enabled {
+			MongodbExporterContainer := psmdb.MongodbExporterContainer(cr.Spec.MongodbExporter, cr.Spec.Secrets.Users)
+			res, err := psmdb.CreateResources(cr.Spec.MongodbExporter.Resources)
+			if err != nil {
+				return nil, fmt.Errorf("pmm container error: create resources error: %v", err)
+			}
+			MongodbExporterContainer.Resources = res
+			sfsSpec.Template.Spec.Containers = append(sfsSpec.Template.Spec.Containers, MongodbExporterContainer)
+		}
+
+
 		if cr.Spec.PMM.Enabled {
 			pmmsec := corev1.Secret{}
 			err := r.client.Get(context.TODO(), types.NamespacedName{Name: usersSecretName, Namespace: cr.Namespace}, &pmmsec)

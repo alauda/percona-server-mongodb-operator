@@ -26,7 +26,7 @@ var (
 	defaultWiredTigerCacheSizeRatio       = 0.5
 	defaultInMemorySizeRatio              = 0.9
 	defaultOperationProfilingMode         = OperationProfilingModeSlowOp
-	defaultImagePullPolicy                = corev1.PullAlways
+	defaultImagePullPolicy                = corev1.PullIfNotPresent
 )
 
 // CheckNSetDefaults sets default options, overwrites wrong settings
