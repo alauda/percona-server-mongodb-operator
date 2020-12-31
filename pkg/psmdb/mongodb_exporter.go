@@ -10,8 +10,8 @@ import (
 func MongodbExporterContainer(spec api.MongodbExporterSpec, secrets string) corev1.Container {
 	exportPorts := []corev1.ContainerPort{
 		{
-			ContainerPort: 7777,
-			Name: "http",
+			ContainerPort: 9104,
+			Name:          "TCP",
 		},
 	}
 
@@ -50,9 +50,9 @@ func MongodbExporterContainer(spec api.MongodbExporterSpec, secrets string) core
 		Name:            "mongod-exporter",
 		Image:           spec.Image,
 		ImagePullPolicy: corev1.PullIfNotPresent,
-		Env: dbArgsEnv,
-		Args: ExporterArgs,
-		Ports: exportPorts,
+		Env:             dbArgsEnv,
+		Args:            ExporterArgs,
+		Ports:           exportPorts,
 	}
 
 	return mongodb_exporter
