@@ -11,7 +11,7 @@ func MongodbExporterContainer(spec api.MongodbExporterSpec, secrets string) core
 	exportPorts := []corev1.ContainerPort{
 		{
 			ContainerPort: 9104,
-			Name:          "TCP",
+			Name:          "exporter-tcp",
 		},
 	}
 
