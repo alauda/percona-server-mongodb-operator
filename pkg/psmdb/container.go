@@ -75,7 +75,7 @@ func container(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec, name strin
 				Value: replset.Name,
 			},
 			{
-				Name: "__FILE_LOG_PATH__",
+				Name:  "__FILE_LOG_PATH__",
 				Value: m.Spec.PsmdbLogPath,
 			},
 		},
@@ -121,6 +121,7 @@ func containerArgs(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec, resour
 	args := []string{
 		"--bind_ip_all",
 		"--auth",
+		"-vvvvv",
 		"--dbpath=" + MongodContainerDataDir,
 		"--port=" + strconv.Itoa(int(mSpec.Net.Port)),
 		"--replSet=" + replset.Name,
