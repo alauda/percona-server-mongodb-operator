@@ -128,6 +128,7 @@ func containerArgs(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec, resour
 		"--storageEngine=" + string(mSpec.Storage.Engine),
 		"--relaxPermChecks",
 		"--sslAllowInvalidCertificates",
+		"--sslAllowConnectionsWithoutCertificates",
 	}
 
 	if m.Spec.UnsafeConf {
