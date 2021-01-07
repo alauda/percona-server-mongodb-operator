@@ -121,7 +121,6 @@ func containerArgs(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec, resour
 	args := []string{
 		"--bind_ip_all",
 		"--auth",
-		"-vvvvv",
 		"--dbpath=" + MongodContainerDataDir,
 		"--port=" + strconv.Itoa(int(mSpec.Net.Port)),
 		"--replSet=" + replset.Name,
