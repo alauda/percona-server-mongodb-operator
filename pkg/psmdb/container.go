@@ -75,7 +75,7 @@ func container(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec, name strin
 				Value: replset.Name,
 			},
 			{
-				Name: "__FILE_LOG_PATH__",
+				Name:  "__FILE_LOG_PATH__",
 				Value: m.Spec.PsmdbLogPath,
 			},
 		},
@@ -127,6 +127,7 @@ func containerArgs(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec, resour
 		"--storageEngine=" + string(mSpec.Storage.Engine),
 		"--relaxPermChecks",
 		"--sslAllowInvalidCertificates",
+		"--sslAllowConnectionsWithoutCertificates",
 	}
 
 	if m.Spec.UnsafeConf {
