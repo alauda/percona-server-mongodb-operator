@@ -11,7 +11,7 @@ ARG CGO_ENABLED=0
 RUN set -ex; \
     mkdir -p build/_output/bin; \
     GO_LDFLAGS=$GO_LDFLAGS CGO_ENABLED=$CGO_ENABLED \
-       go build -mod=vendor -ldflags "-w -s -X main.GitCommit=$GIT_COMMIT -X main.GitBranch=$GIT_BRANCH" \
+       go build -ldflags "-w -s -X main.GitCommit=$GIT_COMMIT -X main.GitBranch=$GIT_BRANCH" \
            -o build/_output/bin/percona-server-mongodb-operator \
                cmd/manager/main.go; \
     cp -r build/_output/bin/percona-server-mongodb-operator /usr/local/bin/percona-server-mongodb-operator
