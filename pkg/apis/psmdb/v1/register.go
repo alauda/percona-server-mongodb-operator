@@ -6,6 +6,7 @@
 package v1
 
 import (
+	gdv1beta1 "gomod.alauda.cn/ait-apis/grafanadashboard/v1beta1"
 	"k8s.io/apimachinery/pkg/runtime/schema"
 	"sigs.k8s.io/controller-runtime/pkg/runtime/scheme"
 )
@@ -19,5 +20,11 @@ var (
 )
 
 func init() {
-	SchemeBuilder.Register(&PerconaServerMongoDB{}, &PerconaServerMongoDBList{}, &PerconaServerMongoDBBackup{}, &PerconaServerMongoDBBackupList{}, &PerconaServerMongoDBRestore{}, &PerconaServerMongoDBRestoreList{})
+	SchemeBuilder.Register(&PerconaServerMongoDB{},
+		&PerconaServerMongoDBList{},
+		&PerconaServerMongoDBBackup{},
+		&PerconaServerMongoDBBackupList{},
+		&PerconaServerMongoDBRestore{},
+		&PerconaServerMongoDBRestoreList{},
+		&gdv1beta1.GrafanaDashboard{})
 }
