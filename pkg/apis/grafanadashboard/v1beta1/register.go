@@ -21,5 +21,6 @@ var (
 )
 
 func init() {
-	SchemeBuilder.Register(&gdv1beta1.GrafanaDashboard{})
+	SchemeBuilder.Register(&gdv1beta1.GrafanaDashboard{},
+		&gdv1beta1.GrafanaDashboardList{})
 }
