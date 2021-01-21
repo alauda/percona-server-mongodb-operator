@@ -36,7 +36,7 @@ func (r *ReconcilePerconaServerMongoDB) reconcileMonitor() error {
 			log.Error(err, "create servicemonitor fail")
 		}
 	}
-	grafana := monitor.GenerateGrafana("")
+	grafana := monitor.GenerateGrafana(WatchNamespace)
 	err = r.client.Get(context.TODO(),
 		types.NamespacedName{Name: grafana.Name,
 			Namespace: grafana.Namespace},
@@ -51,5 +51,6 @@ func (r *ReconcilePerconaServerMongoDB) reconcileMonitor() error {
 			log.Error(err, "get grafana dashboard fail")
 		}
 	}
+
 	return err
 }

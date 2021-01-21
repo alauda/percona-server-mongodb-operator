@@ -5,7 +5,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-const ServiceMonitorName = "redis-sentinel"
+const ServiceMonitorName = "mongo-servicemonitor"
 
 // GenerateServiceMonitor is a method that will generate a ServiceMonitor interface
 func GenerateServiceMonitor() *v1.ServiceMonitor {
@@ -19,7 +19,7 @@ func GenerateServiceMonitor() *v1.ServiceMonitor {
 		Spec: v1.ServiceMonitorSpec{
 			Selector: metav1.LabelSelector{
 				MatchLabels: map[string]string{
-					"app.kubernetes.io/part-of": "redis-failover",
+					"app.kubernetes.io/component": "mongod",
 				},
 			},
 			NamespaceSelector: v1.NamespaceSelector{
@@ -27,18 +27,9 @@ func GenerateServiceMonitor() *v1.ServiceMonitor {
 			},
 			Endpoints: []v1.Endpoint{
 				{
-					HonorLabels:   true,
-					Port:          "http-metrics",
-					Path:          "/metrics",
-					Interval:      "10s",
-					ScrapeTimeout: "10s",
-				},
-				{
-					HonorLabels:   true,
-					Port:          "metrics",
-					Path:          "/metrics",
-					Interval:      "10s",
-					ScrapeTimeout: "10s",
+					Port:     "mongod-exporter",
+					Path:     "/metrics",
+					Interval: "10s",
 				},
 			},
 		},
