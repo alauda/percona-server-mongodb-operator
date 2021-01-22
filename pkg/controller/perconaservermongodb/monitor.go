@@ -4,11 +4,13 @@ import (
 	"context"
 	promClient "github.com/coreos/prometheus-operator/pkg/client/versioned"
 	"github.com/percona/percona-server-mongodb-operator/pkg/psmdb/monitor"
+	gdv1beta1 "gomod.alauda.cn/ait-apis/grafanadashboard/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/rest"
 	"os"
+	"reflect"
 )
 
 var WatchNamespace = os.Getenv("WATCH_NAMESPACE")
@@ -39,7 +41,7 @@ func (r *ReconcilePerconaServerMongoDB) reconcileServiceMonitors(enabled bool) e
 		log.Error(err, "error create prometheus client")
 		return err
 	}
-	_, err = p.MonitoringV1().ServiceMonitors(WatchNamespace).Get(sm.Name, v1.GetOptions{})
+	m, err := p.MonitoringV1().ServiceMonitors(WatchNamespace).Get(sm.Name, v1.GetOptions{})
 	if err != nil && !errors.IsNotFound(err) {
 		log.Error(err, "get servicemonitor fail")
 		return err
@@ -49,6 +51,11 @@ func (r *ReconcilePerconaServerMongoDB) reconcileServiceMonitors(enabled bool) e
 			_, err = p.MonitoringV1().ServiceMonitors(WatchNamespace).Create(sm)
 			if err != nil {
 				log.Error(err, "create servicemonitor fail")
+			}
+		} else if !reflect.DeepEqual(m.Spec, sm.Spec) {
+			_, err = p.MonitoringV1().ServiceMonitors(WatchNamespace).Update(sm)
+			if err != nil {
+				log.Error(err, "update servicemonitor fail")
 			}
 		}
 	} else {
@@ -63,11 +70,12 @@ func (r *ReconcilePerconaServerMongoDB) reconcileServiceMonitors(enabled bool) e
 }
 
 func (r *ReconcilePerconaServerMongoDB) reconcileGrafanaDashboards(enabled bool) error {
+	old_gd := &gdv1beta1.GrafanaDashboard{}
 	gd := monitor.GenerateGrafana(WatchNamespace)
 	err := r.client.Get(context.TODO(),
 		types.NamespacedName{Name: gd.Name,
 			Namespace: gd.Namespace},
-		gd)
+		old_gd)
 	if err != nil && !errors.IsNotFound(err) {
 		log.Error(err, "Get grafana dashboards fail")
 		return err
@@ -77,6 +85,11 @@ func (r *ReconcilePerconaServerMongoDB) reconcileGrafanaDashboards(enabled bool)
 			err = r.client.Create(context.TODO(), gd)
 			if err != nil {
 				log.Error(err, "Cannot create grafana dashboard")
+			}
+		} else if !reflect.DeepEqual(old_gd.Spec, gd.Spec) {
+			err = r.client.Update(context.TODO(), gd)
+			if err != nil {
+				log.Error(err, "Cannot update grafana dashboard")
 			}
 		}
 	} else {
