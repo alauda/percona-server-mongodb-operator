@@ -263,12 +263,10 @@ func (r *ReconcilePerconaServerMongoDB) Reconcile(request reconcile.Request) (re
 		}
 	}
 
-	if cr.Spec.MongodbExporter.Enabled {
-		err = r.reconcileMonitor()
-		if err != nil {
-			err = errors.Wrap(err, "reconcile monitor tasks")
-			return reconcile.Result{}, err
-		}
+	err = r.reconcileMonitor(cr.Spec.MongodbExporter.Enabled)
+	if err != nil {
+		err = errors.Wrap(err, "reconcile monitor tasks")
+		return reconcile.Result{}, err
 	}
 
 	for i, replset := range cr.Spec.Replsets {

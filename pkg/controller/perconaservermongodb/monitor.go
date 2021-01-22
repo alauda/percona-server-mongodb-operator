@@ -19,36 +19,63 @@ func init() {
 	}
 }
 
-func (r *ReconcilePerconaServerMongoDB) reconcileMonitor() error {
+func (r *ReconcilePerconaServerMongoDB) reconcileMonitor(enabled bool) error {
 	sm := monitor.GenerateServiceMonitor()
+	gd := monitor.GenerateGrafana(WatchNamespace)
 	config, err := rest.InClusterConfig()
 	if err != nil {
 		log.Error(err, "error loading kubernetes configuration inside cluster")
 		return err
 	}
 	p, err := promClient.NewForConfig(config)
-	m, _ := p.MonitoringV1().ServiceMonitors(WatchNamespace).Get(sm.Name, v1.GetOptions{})
-	if m.Name != "" {
-		log.Info("ServiceMonitor %s exist", sm.Name)
-	} else {
-		_, err = p.MonitoringV1().ServiceMonitors(WatchNamespace).Create(sm)
-		if err != nil {
-			log.Error(err, "create servicemonitor fail")
-		}
-	}
-	grafana := monitor.GenerateGrafana(WatchNamespace)
-	err = r.client.Get(context.TODO(),
-		types.NamespacedName{Name: grafana.Name,
-			Namespace: grafana.Namespace},
-		grafana)
 	if err != nil {
-		if errors.IsNotFound(err) {
-			err = r.client.Create(context.TODO(), grafana)
+		log.Error(err, "error get prometheus client")
+		return err
+	}
+
+	if enabled {
+		m, _ := p.MonitoringV1().ServiceMonitors(WatchNamespace).Get(sm.Name, v1.GetOptions{})
+		if m.Name == "" {
+			_, err = p.MonitoringV1().ServiceMonitors(WatchNamespace).Create(sm)
 			if err != nil {
-				log.Error(err, "Cannot create grafana dashboard")
+				log.Error(err, "create servicemonitor fail")
+				return err
 			}
-		} else {
-			log.Error(err, "get grafana dashboard fail")
+		}
+
+		err = r.client.Get(context.TODO(),
+			types.NamespacedName{Name: gd.Name,
+				Namespace: gd.Namespace},
+			gd)
+		if err != nil {
+			if errors.IsNotFound(err) {
+				err = r.client.Create(context.TODO(), gd)
+				if err != nil {
+					log.Error(err, "Cannot create grafana dashboard")
+				}
+			} else {
+				log.Error(err, "get grafana dashboard fail")
+			}
+		}
+	} else {
+		m, _ := p.MonitoringV1().ServiceMonitors(WatchNamespace).Get(sm.Name, v1.GetOptions{})
+		if m.Name != "" {
+			err = p.MonitoringV1().ServiceMonitors(WatchNamespace).Delete(m.Name, &v1.DeleteOptions{})
+			if err != nil {
+				log.Error(err, "delete servicemonitor fail")
+				return err
+			}
+		}
+
+		err = r.client.Get(context.TODO(),
+			types.NamespacedName{Name: gd.Name,
+				Namespace: gd.Namespace},
+			gd)
+		if err == nil {
+			err = r.client.Delete(context.TODO(), gd)
+			if err != nil {
+				log.Error(err, "Cannot delete grafana dashboard")
+			}
 		}
 	}
 
