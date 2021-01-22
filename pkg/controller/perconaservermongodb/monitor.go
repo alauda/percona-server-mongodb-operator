@@ -76,6 +76,11 @@ func (r *ReconcilePerconaServerMongoDB) reconcileMonitor(enabled bool) error {
 			if err != nil {
 				log.Error(err, "Cannot delete grafana dashboard")
 			}
+		} else if errors.IsNotFound(err) {
+			// expected result achieved
+			err = nil
+		} else {
+			log.Error(err, "Get grafana dashboards fail")
 		}
 	}
 
