@@ -997,7 +997,7 @@ const MongoGrafanaJson = `
 }
 `
 
-const GrafanaName = "mongo-cluster-summary"
+const GrafanaName = "mongodb-overview"
 
 func GenerateGrafana(ns string) *gdv1beta1.GrafanaDashboard {
 	return &gdv1beta1.GrafanaDashboard{
