@@ -8,12 +8,13 @@ ARG GIT_BRANCH
 ARG GO_LDFLAGS
 ARG CGO_ENABLED=0
 
-RUN mkdir -p build/_output/bin \
-    && GO_LDFLAGS=$GO_LDFLAGS CGO_ENABLED=$CGO_ENABLED \
-       go build -mod=vendor -ldflags "-w -s -X main.GitCommit=$GIT_COMMIT -X main.GitBranch=$GIT_BRANCH" \
+RUN set -ex; \
+    mkdir -p build/_output/bin; \
+    GOPROXY=https://goproxy.cn,https://athens.alauda.cn GONOSUMDB="gomod.alauda.cn/*" GO_LDFLAGS=$GO_LDFLAGS CGO_ENABLED=$CGO_ENABLED \
+       go build -ldflags "-w -s -X main.GitCommit=$GIT_COMMIT -X main.GitBranch=$GIT_BRANCH" \
            -o build/_output/bin/percona-server-mongodb-operator \
-               cmd/manager/main.go \
-    && cp -r build/_output/bin/percona-server-mongodb-operator /usr/local/bin/percona-server-mongodb-operator
+               cmd/manager/main.go; \
+    cp -r build/_output/bin/percona-server-mongodb-operator /usr/local/bin/percona-server-mongodb-operator
 
 FROM alpine:3.12.1
 
