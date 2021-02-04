@@ -87,7 +87,8 @@ func (r *ReconcilePerconaServerMongoDB) reconcileGrafanaDashboards(enabled bool)
 				log.Error(err, "Cannot create grafana dashboard")
 			}
 		} else if !reflect.DeepEqual(old_gd.Spec, gd.Spec) {
-			err = r.client.Update(context.TODO(), gd)
+			old_gd.Spec = gd.Spec
+			err = r.client.Update(context.TODO(), old_gd)
 			if err != nil {
 				log.Error(err, "Cannot update grafana dashboard")
 			}
