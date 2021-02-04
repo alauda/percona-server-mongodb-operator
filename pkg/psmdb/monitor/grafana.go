@@ -961,8 +961,8 @@ const MongoGrafanaJson = `
     ]
   },
   "time": {
-    "from": "2021-01-20T15:15:49.547Z",
-    "to": "2021-01-21T15:15:49.547Z"
+    "from": "now-3h",
+    "to": "now"
   },
   "timepicker": {
     "now": true,
