@@ -89,26 +89,6 @@ const MongoGrafanaJson = `
           "legendFormat": "{{legacy_op_type}}",
           "refId": "J",
           "step": 300
-        },
-        {
-          "expr": "rate(mongodb_mongod_op_counters_repl_total{instance=~\"$host\", type!~\"(command|query|getmore)\"}[$interval]) or \nirate(mongodb_mongod_op_counters_repl_total{instance=~\"$host\", type!~\"(command|query|getmore)\"}[5m]) or\nrate(mongodb_mongos_op_counters_repl_total{instance=~\"$host\", type!~\"(command|query|getmore)\"}[$interval]) or \nirate(mongodb_mongos_op_counters_repl_total{instance=~\"$host\", type!~\"(command|query|getmore)\"}[5m])",
-          "format": "time_series",
-          "hide": false,
-          "interval": "$interval",
-          "intervalFactor": 1,
-          "legendFormat": "repl_{{type}}",
-          "refId": "A",
-          "step": 300
-        },
-        {
-          "expr": "rate(mongodb_mongod_metrics_ttl_deleted_documents_total{instance=~\"$host\"}[$interval]) or \nirate(mongodb_mongod_metrics_ttl_deleted_documents_total{instance=~\"$host\"}[5m]) or\nrate(mongodb_mongos_metrics_ttl_deleted_documents_total{instance=~\"$host\"}[$interval]) or \nirate(mongodb_mongos_metrics_ttl_deleted_documents_total{instance=~\"$host\"}[5m])",
-          "format": "time_series",
-          "hide": false,
-          "interval": "$interval",
-          "intervalFactor": 1,
-          "legendFormat": "ttl_delete",
-          "refId": "B",
-          "step": 300
         }
       ],
       "thresholds": [],
@@ -192,7 +172,7 @@ const MongoGrafanaJson = `
         "max": true,
         "min": true,
         "rightSide": false,
-        "show": true,
+        "show": false,
         "sort": "avg",
         "sortDesc": true,
         "total": false,
@@ -217,7 +197,7 @@ const MongoGrafanaJson = `
           "hide": false,
           "interval": "$interval",
           "intervalFactor": 1,
-          "legendFormat": "Connections",
+          "legendFormat": "ConnectionsNums",
           "refId": "J",
           "step": 300
         }
@@ -329,7 +309,7 @@ const MongoGrafanaJson = `
           "hide": false,
           "interval": "$interval",
           "intervalFactor": 1,
-          "legendFormat": "{{state}}",
+          "legendFormat": "{{csr_type}}",
           "refId": "J",
           "step": 300
         }
@@ -440,7 +420,7 @@ const MongoGrafanaJson = `
           "hide": false,
           "interval": "$interval",
           "intervalFactor": 1,
-          "legendFormat": "{{state}}",
+          "legendFormat": "{{doc_op_type}}",
           "refId": "J",
           "step": 300
         }
@@ -526,7 +506,7 @@ const MongoGrafanaJson = `
         "hideZero": false,
         "max": true,
         "min": true,
-        "show": true,
+        "show": false,
         "sort": "avg",
         "sortDesc": true,
         "total": false,
@@ -551,7 +531,7 @@ const MongoGrafanaJson = `
           "hide": false,
           "interval": "$interval",
           "intervalFactor": 1,
-          "legendFormat": "{{type}}",
+          "legendFormat": "",
           "refId": "J",
           "step": 300
         }
@@ -663,7 +643,7 @@ const MongoGrafanaJson = `
           "hide": false,
           "interval": "$interval",
           "intervalFactor": 1,
-          "legendFormat": "{{type}}",
+          "legendFormat": "{{assert_type}}",
           "refId": "J",
           "step": 300
         }
@@ -748,7 +728,7 @@ const MongoGrafanaJson = `
         "current": false,
         "max": true,
         "min": true,
-        "show": true,
+        "show": false,
         "sort": "avg",
         "sortDesc": true,
         "total": false,
