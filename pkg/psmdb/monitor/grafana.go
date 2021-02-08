@@ -979,12 +979,13 @@ const MongoGrafanaJson = `
 
 const GrafanaName = "mongodb-overview"
 
-func GenerateGrafana(ns string) *gdv1beta1.GrafanaDashboard {
+func GenerateGrafana(ns string, owner metav1.OwnerReference) *gdv1beta1.GrafanaDashboard {
 	return &gdv1beta1.GrafanaDashboard{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:       GrafanaName,
-			Namespace:  ns,
-			Finalizers: []string{"grafana.dashboard.finalizers.ait.cpaas.io"},
+			Name:            GrafanaName,
+			Namespace:       ns,
+			Finalizers:      []string{"grafana.dashboard.finalizers.ait.cpaas.io"},
+			OwnerReferences: []metav1.OwnerReference{owner},
 		},
 		Spec: gdv1beta1.GrafanaDashboardSpec{
 			Folder: "MongoDB",
