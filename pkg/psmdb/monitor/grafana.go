@@ -927,7 +927,7 @@ const MongoGrafanaJson = `
         "multiFormat": "glob",
         "name": "host",
         "options": [],
-        "query": "label_values({__name__=~\"mongodb_ss_connections{cluster=~\\\"$cluster\\\"}|mongodb_up\"}, instance)",
+        "query": "label_values(mongodb_ss_connections{rs_nm=~\"$cluster\"}, instance)",
         "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
