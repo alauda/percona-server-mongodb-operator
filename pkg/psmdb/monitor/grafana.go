@@ -81,7 +81,7 @@ const MongoGrafanaJson = `
       "steppedLine": false,
       "targets": [
         {
-          "expr": "rate(mongodb_ss_opcounters{instance=~\"$host\", legacy_op_type!=\"command\"}[$interval]) or \nirate(mongodb_ss_opcounters{instance=~\"$host\", legacy_op_type!=\"command\"}[5m])",
+          "expr": "rate(mongodb_ss_opcounters{rs_nm=~\"$cluster\", instance=~\"$host\", legacy_op_type!=\"command\"}[$interval]) or \nirate(mongodb_ss_opcounters{rs_nm=~\"$cluster\", instance=~\"$host\", legacy_op_type!=\"command\"}[5m])",
           "format": "time_series",
           "hide": false,
           "interval": "$interval",
@@ -192,7 +192,7 @@ const MongoGrafanaJson = `
       "steppedLine": false,
       "targets": [
         {
-          "expr": "mongodb_ss_connections{instance=~\"$host\", conn_type=\"current\"}",
+          "expr": "mongodb_ss_connections{rs_nm=~\"$cluster\", instance=~\"$host\", conn_type=\"current\"}",
           "format": "time_series",
           "hide": false,
           "interval": "$interval",
@@ -304,7 +304,7 @@ const MongoGrafanaJson = `
       "steppedLine": false,
       "targets": [
         {
-          "expr": "mongodb_ss_metrics_cursor_open{instance=~\"$host\"}",
+          "expr": "mongodb_ss_metrics_cursor_open{rs_nm=~\"$cluster\", instance=~\"$host\"}",
           "format": "time_series",
           "hide": false,
           "interval": "$interval",
@@ -415,7 +415,7 @@ const MongoGrafanaJson = `
       "steppedLine": false,
       "targets": [
         {
-          "expr": "rate(mongodb_ss_metrics_document{instance=~\"$host\"}[$interval]) or \nirate(mongodb_ss_metrics_document{instance=~\"$host\"}[5m])",
+          "expr": "rate(mongodb_ss_metrics_document{rs_nm=~\"$cluster\", instance=~\"$host\"}[$interval]) or \nirate(mongodb_ss_metrics_document{rs_nm=~\"$cluster\", instance=~\"$host\"}[5m])",
           "format": "time_series",
           "hide": false,
           "interval": "$interval",
@@ -526,7 +526,7 @@ const MongoGrafanaJson = `
       "steppedLine": false,
       "targets": [
         {
-          "expr": "  mongodb_ss_wt_lock_txn_global_lock_application_thread_time_waiting_usecs{instance=~\"$host\"}",
+          "expr": "mongodb_ss_wt_lock_txn_global_lock_application_thread_time_waiting_usecs{rs_nm=~\"$cluster\", instance=~\"$host\"}",
           "format": "time_series",
           "hide": false,
           "interval": "$interval",
@@ -638,7 +638,7 @@ const MongoGrafanaJson = `
       "steppedLine": false,
       "targets": [
         {
-          "expr": "rate(mongodb_ss_asserts{instance=~\"$host\"}[$interval]) or \nirate(mongodb_ss_asserts{instance=~\"$host\"}[5m])",
+          "expr": "rate(mongodb_ss_asserts{rs_nm=~\"$cluster\", instance=~\"$host\"}[$interval]) or \nirate(mongodb_ss_asserts{rs_nm=~\"$cluster\", instance=~\"$host\"}[5m])",
           "format": "time_series",
           "hide": false,
           "interval": "$interval",
@@ -748,7 +748,7 @@ const MongoGrafanaJson = `
       "steppedLine": false,
       "targets": [
         {
-          "expr": "rate(mongodb_ss_extra_info_page_faults{instance=~\"$host\"}[$interval]) or \nirate(mongodb_ss_extra_info_page_faults{instance=~\"$host\"}[5m])",
+          "expr": "rate(mongodb_ss_extra_info_page_faults{rs_nm=~\"$cluster\", instance=~\"$host\"}[$interval]) or \nirate(mongodb_ss_extra_info_page_faults{rs_nm=~\"$cluster\", instance=~\"$host\"}[5m])",
           "format": "time_series",
           "hide": false,
           "interval": "$interval",
