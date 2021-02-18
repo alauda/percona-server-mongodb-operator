@@ -31,6 +31,9 @@ func (r *ReconcilePerconaServerMongoDB) reconcileMonitor(enabled bool) error {
 }
 
 func (r *ReconcilePerconaServerMongoDB) reconcileServiceMonitors(enabled bool) error {
+	if !enabled {
+		return nil
+	}
 	owner, err := generateOwnerReference(r)
 	if err != nil {
 		return err
@@ -48,19 +51,18 @@ func (r *ReconcilePerconaServerMongoDB) reconcileServiceMonitors(enabled bool) e
 	if err != nil && !errors.IsNotFound(err) {
 		return err
 	}
-	if enabled {
-		if errors.IsNotFound(err) {
-			_, err = p.MonitoringV1().ServiceMonitors(WatchNamespace).Create(sm)
-		} else if !reflect.DeepEqual(m.Spec, sm.Spec) {
-			_, err = p.MonitoringV1().ServiceMonitors(WatchNamespace).Update(sm)
-		}
-	} else {
-		err = nil
+	if errors.IsNotFound(err) {
+		_, err = p.MonitoringV1().ServiceMonitors(WatchNamespace).Create(sm)
+	} else if !reflect.DeepEqual(m.Spec, sm.Spec) {
+		_, err = p.MonitoringV1().ServiceMonitors(WatchNamespace).Update(sm)
 	}
 	return err
 }
 
 func (r *ReconcilePerconaServerMongoDB) reconcileGrafanaDashboards(enabled bool) error {
+	if !enabled {
+		return nil
+	}
 	old_gd := &gdv1beta1.GrafanaDashboard{}
 	owner, err := generateOwnerReference(r)
 	if err != nil {
@@ -74,15 +76,11 @@ func (r *ReconcilePerconaServerMongoDB) reconcileGrafanaDashboards(enabled bool)
 	if err != nil && !errors.IsNotFound(err) {
 		return err
 	}
-	if enabled {
-		if errors.IsNotFound(err) {
-			err = r.client.Create(context.TODO(), gd)
-		} else if !reflect.DeepEqual(old_gd.Spec, gd.Spec) {
-			old_gd.Spec = gd.Spec
-			err = r.client.Update(context.TODO(), old_gd)
-		}
-	} else {
-		err = nil
+	if errors.IsNotFound(err) {
+		err = r.client.Create(context.TODO(), gd)
+	} else if !reflect.DeepEqual(old_gd.Spec, gd.Spec) {
+		old_gd.Spec = gd.Spec
+		err = r.client.Update(context.TODO(), old_gd)
 	}
 	return err
 }
