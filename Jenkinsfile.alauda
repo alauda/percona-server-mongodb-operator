@@ -19,18 +19,21 @@ AlaudaPipeline {
             binding: "sonarqube",
             enabled: true
         ],
-        operator: [
-            enabled: true,
-            hub_project: "common",
-            hub_pipeline: "opeartors-index",
-            component: "mongodb_percona_server_operator_15",
-            bundle: [
-                name: "mongodb_percona_server_operator_bundle",
-                script: "CONTROLLER_VERSION=\${CONTROLLER_VERSION} BUNDLE_VERSION=\${BUNDLE_VERSION} make bundle", // generate operator bundle manifest
-                repository: "tdsql/percona-server-mongodb-operator-bundle",
-                dockerfile: "bundle.Dockerfile", // default value will be bundle.Dockerfile, used to build operator bundle image
-            ]
-        ],
+//        For below field definition, please refer to https://gitlab-ce.alauda.cn/devops/jenkins-shared-library/blob/master/README.md
+//        Before enable bundle build, need to add bundle target in Makefile
+//        For bundle target reference, please refer to https://gitlab-ce.alauda.cn/devops/devops-tool-operator/blob/master/Makefile
+//        operator: [
+//            enabled: true,
+//            hub_project: "common",
+//            hub_pipeline: "opeartors-index",
+//            component: "mongodb_percona_server_operator_15",
+//            bundle: [
+//                name: "mongodb_percona_server_operator_bundle",
+//                script: "CONTROLLER_VERSION=\${CONTROLLER_VERSION} BUNDLE_VERSION=\${BUNDLE_VERSION} make bundle", // generate operator bundle manifest
+//                repository: "tdsql/percona-server-mongodb-operator-bundle",
+//                dockerfile: "bundle.Dockerfile", // default value will be bundle.Dockerfile, used to build operator bundle image
+//            ]
+//        ],
     ]
     env = [
         GO111MODULE: "on",
