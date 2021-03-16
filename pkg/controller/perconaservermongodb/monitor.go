@@ -18,7 +18,7 @@ var WatchNamespace = os.Getenv("WATCH_NAMESPACE")
 
 func init() {
 	if WatchNamespace == "" {
-		WatchNamespace = "default"
+		WatchNamespace = "operators"
 	}
 }
 
