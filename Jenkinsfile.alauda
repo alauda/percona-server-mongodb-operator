@@ -19,6 +19,7 @@ AlaudaPipeline {
             binding: "sonarqube",
             enabled: true
         ],
+
 //        For below field definition, please refer to https://gitlab-ce.alauda.cn/devops/jenkins-shared-library/blob/master/README.md
 //        Before enable bundle build, need to add bundle target in Makefile
 //        For bundle target reference, please refer to https://gitlab-ce.alauda.cn/devops/devops-tool-operator/blob/master/Makefile
