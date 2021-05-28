@@ -1,0 +1,18 @@
+global:
+  registry:
+    # address: registry address
+    address: build-harbor.alauda.cn
+  # all the images and components used
+  images:
+    # <name>: a component name
+    controller:
+      # repository: image repository for the image
+      repository: middleware/percona-server-mongodb-operator
+      # tag: a tag for the component
+      tag: v3.5-26-gfa0d2bdd
+      # thirdparty: if true, the image tag is not updated
+      thirdparty: false
+      # code: code repository address
+      code: gitlab-ce.alauda.cn/middleware/percona-server-mongodb-operator
+      # support_arm: flag for arm support
+      support_arm: true

@@ -1,0 +1,101 @@
+apiVersion: psmdb.percona.com/v1-5-0
+kind: PerconaServerMongoDB
+metadata:
+  name: my-cluster-name
+spec:
+  image: >-
+    harbor-b.alauda.cn/tdsql/percona-server-mongodb-15:mongo-acp-main-4.2-b1-1de7710.0
+  imagePullPolicy: IfNotPresent
+  allowUnsafeConfigurations: false
+  psmdbLogPath: ''
+  secrets:
+    users: my-cluster-name-secrets
+  mongodbExporter:
+    enabled: true
+    image: 'harbor-b.alauda.cn/tdsql/mongodb-exporter:acp-main-v0.20.1-b22-5e2c5da.0'
+    resources:
+      requests:
+        memory: 200Mi
+        cpu: 100m
+  mongod:
+    net:
+      port: 27017
+      hostPort: 0
+    security:
+      redactClientLogData: false
+      enableEncryption: true
+      encryptionKeySecret: my-cluster-name-mongodb-encryption-key
+      encryptionCipherMode: AES256-CBC
+    setParameter:
+      ttlMonitorSleepSecs: 60
+      wiredTigerConcurrentReadTransactions: 128
+      wiredTigerConcurrentWriteTransactions: 128
+    storage:
+      engine: wiredTiger
+      inMemory:
+        engineConfig:
+          inMemorySizeRatio: 0.9
+      mmapv1:
+        nsSize: 16
+        smallfiles: false
+      wiredTiger:
+        collectionConfig:
+          blockCompressor: snappy
+        engineConfig:
+          cacheSizeRatio: 0.5
+          directoryForIndexes: false
+          journalCompressor: snappy
+        indexConfig:
+          prefixCompression: true
+    operationProfiling:
+      mode: slowOp
+      slowOpThresholdMs: 100
+      rateLimit: 100
+  replsets:
+    - name: rs0
+      size: 3
+      affinity:
+        antiAffinityTopologyKey: kubernetes.io/hostname
+      containerSecurityContext:
+        runAsUser: 0
+      podDisruptionBudget:
+        maxUnavailable: 1
+      podSecurityContext:
+        fsGroup: 1001
+      expose:
+        enabled: false
+        exposeType: LoadBalancer
+      arbiter:
+        enabled: false
+        size: 1
+        affinity:
+          antiAffinityTopologyKey: kubernetes.io/hostname
+      resources:
+        limits:
+          cpu: 3000m
+          memory: 8000Mi
+        requests:
+          cpu: 300m
+          memory: 800Mi
+      volumeSpec:
+        persistentVolumeClaim:
+          resources:
+            requests:
+              storage: 3Gi
+  backup:
+    containerSecurityContext:
+      runAsUser: 0
+    enabled: true
+    restartOnFailure: true
+    image: >-
+      harbor-b.alauda.cn/tdsql/percona-backup-mongodb:acp-main-v1.3.4-b16-3236b3e.0
+    podSecurityContext:
+      fsGroup: 1001
+    serviceAccountName: percona-server-mongodb-operator
+    storages: null
+    tasks: null
+  updateStrategy: SmartUpdate
+  upgradeOptions:
+    apply: never
+    schedule: 0 2 * * *
+    versionServiceEndpoint: 'https://check.percona.com/versions/'
