@@ -72,8 +72,8 @@ spec:
           antiAffinityTopologyKey: kubernetes.io/hostname
       resources:
         limits:
-          cpu: 3000m
-          memory: 8000Mi
+          cpu: 1000m
+          memory: 2000Mi
         requests:
           cpu: 300m
           memory: 800Mi
