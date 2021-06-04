@@ -117,8 +117,6 @@ spec:
     mediatype: image/svg+xml}
   install:
     spec:
-      permissions: []
-      clusterPermissions: []
       deployments: null
     strategy: deployment
   installModes:
