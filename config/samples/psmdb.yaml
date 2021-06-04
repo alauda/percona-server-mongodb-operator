@@ -92,8 +92,8 @@ spec:
     podSecurityContext:
       fsGroup: 1001
     serviceAccountName: percona-server-mongodb-operator
-    storages: null
-    tasks: null
+    storages: {}
+    tasks: {}
   updateStrategy: SmartUpdate
   upgradeOptions:
     apply: never
