@@ -1,5 +1,5 @@
-projectName: percona-server-mongo-operator
-domain: middleware.alauda.io
+projectName: percona-server-mongodb-operator
+domain: psmdb.percona.com
 multigroup: true
 repo: gitlab-ce.alauda.cn/middleware/percona-server-mongodb-operator
 resources:
