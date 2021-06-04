@@ -24,7 +24,7 @@ spec:
             fieldRef: {fieldPath: 'metadata.name'}
         image: controller:latest
         imagePullPolicy: IfNotPresent
-        name: controller
+        name: percona-server-mongodb-operator
         ports:
         - {containerPort: 60000, name: metrics}
         resources: {}
