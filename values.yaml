@@ -11,7 +11,7 @@ global:
       # tag: a tag for the component
       tag: v3.5-0-g1db315ea
       # thirdparty: if true, the image tag is not updated
-      thirdparty: false
+      thirdparty: true
       # code: code repository address
       code: gitlab-ce.alauda.cn/middleware/percona-server-mongodb-operator
       # support_arm: flag for arm support
