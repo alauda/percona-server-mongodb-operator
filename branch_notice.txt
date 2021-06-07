@@ -1,0 +1,9 @@
+固定分支描述
+
+  main：老社区分支，启用github_main之后，main分支停用
+  github_main：社区分支，用于从社区同步代码；该分支不应该有任何ACP相关改动
+
+  acp-main-1.5.0：老的自研分支，启用master之后（2020-06-07），acp-main-1.5.0分支停用
+  master：最新自研分支
+
+  release-3.x：ACP发版分支
