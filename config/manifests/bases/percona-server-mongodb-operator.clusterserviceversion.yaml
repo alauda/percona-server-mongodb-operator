@@ -35,8 +35,8 @@ metadata:
                               "versionPath":".status.mongoVersion",
                               "versionMatch":"<=4.2.10"
                               "risk":{
-                                      "riskLevel":"Low",
-                                      "description":"可以平滑升级"
+                                  "riskLevel":"Low",
+                                  "description":"可以平滑升级"
                               }
                           }
                       ]
