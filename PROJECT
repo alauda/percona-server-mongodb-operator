@@ -1,0 +1,15 @@
+projectName: percona-server-mongodb-operator
+domain: psmdb.percona.com
+multigroup: true
+repo: gitlab-ce.alauda.cn/middleware/percona-server-mongodb-operator
+resources:
+- group: psmdb.percona.com
+  kind: PerconaServerMongoDBBackup
+  version: v1
+- group: psmdb.percona.com
+  kind: PerconaServerMongoDBRestore
+  version: v1
+- group: psmdb.percona.com
+  kind: PerconaServerMongoDB
+  version: v1
+version: "2"

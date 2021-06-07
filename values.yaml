@@ -1,0 +1,51 @@
+global:
+  registry:
+    # address: registry address
+    address: build-harbor.alauda.cn
+  # all the images and components used
+  images:
+    # <name>: a component name
+    mongo-operator:
+      # repository: image repository for the image
+      repository: middleware/percona-server-mongodb-operator
+      # tag: a tag for the component
+      tag: v3.5-26-gfa0d2bdd
+      # thirdparty: if true, the image tag is not updated
+      thirdparty: false
+      # code: code repository address
+      code: gitlab-ce.alauda.cn/middleware/percona-server-mongodb-operator
+      # support_arm: flag for arm support
+      support_arm: true
+    mongo-server:
+      # repository: image repository for the image
+      repository: middleware/percona-server-mongodb
+      # tag: a tag for the component
+      tag: mongo-acp-main-4.2.2106031545
+      # thirdparty: if true, the image tag is not updated
+      thirdparty: true
+      # code: code repository address
+      code: gitlab-ce.alauda.cn/middleware/percona-docker
+      # support_arm: flag for arm support
+      support_arm: true
+    mongo-exporter:
+      # repository: image repository for the image
+      repository: middleware/mongodb-exporter
+      # tag: a tag for the component
+      tag: acp-main-v0.20.1.2106021349
+      # thirdparty: if true, the image tag is not updated
+      thirdparty: true
+      # code: code repository address
+      code: gitlab-ce.alauda.cn/middleware/mongodb-exporter
+      # support_arm: flag for arm support
+      support_arm: true
+    mongo-backup:
+      # repository: image repository for the image
+      repository: middleware/percona-backup-mongodb
+      # tag: a tag for the component
+      tag: acp-main-v1.3.4.2106021343
+      # thirdparty: if true, the image tag is not updated
+      thirdparty: true
+      # code: code repository address
+      code: gitlab-ce.alauda.cn/middleware/percona-backup-mongodb
+      # support_arm: flag for arm support
+      support_arm: true

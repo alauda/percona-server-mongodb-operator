@@ -1,0 +1,4 @@
+resources:
+- psmdb.yaml
+- psmdb-backup.yaml
+- psmdb-restore.yaml
