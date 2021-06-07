@@ -15,6 +15,7 @@ import (
 	api "github.com/percona/percona-server-mongodb-operator/pkg/apis/psmdb/v1"
 	"github.com/percona/percona-server-mongodb-operator/pkg/psmdb"
 	"github.com/percona/percona-server-mongodb-operator/pkg/psmdb/backup"
+	"github.com/percona/percona-server-mongodb-operator/pkg/psmdb/monitor"
 	"github.com/percona/percona-server-mongodb-operator/pkg/psmdb/secret"
 	"github.com/percona/percona-server-mongodb-operator/version"
 	"github.com/pkg/errors"
@@ -260,6 +261,12 @@ func (r *ReconcilePerconaServerMongoDB) Reconcile(request reconcile.Request) (re
 			err = errors.Wrap(err, "reconcile backup tasks")
 			return reconcile.Result{}, err
 		}
+	}
+
+	err = r.reconcileMonitor(cr.Spec.MongodbExporter.Enabled)
+	if err != nil {
+		err = errors.Wrap(err, "reconcile monitor tasks")
+		return reconcile.Result{}, err
 	}
 
 	for i, replset := range cr.Spec.Replsets {
@@ -529,6 +536,16 @@ func (r *ReconcilePerconaServerMongoDB) reconcileStatefulSet(arbiter bool, cr *a
 				return nil, fmt.Errorf("create a backup container: %v", err)
 			}
 			sfsSpec.Template.Spec.Containers = append(sfsSpec.Template.Spec.Containers, agentC)
+		}
+
+		if cr.Spec.MongodbExporter.Enabled {
+			mongodbExporterContainer := monitor.MongodbExporterContainer(cr.Spec.MongodbExporter, cr.Spec.Secrets.Users)
+			res, err := psmdb.CreateResources(cr.Spec.MongodbExporter.Resources)
+			if err != nil {
+				return nil, fmt.Errorf("pmm container error: create resources error: %v", err)
+			}
+			mongodbExporterContainer.Resources = res
+			sfsSpec.Template.Spec.Containers = append(sfsSpec.Template.Spec.Containers, mongodbExporterContainer)
 		}
 
 		if cr.Spec.PMM.Enabled {

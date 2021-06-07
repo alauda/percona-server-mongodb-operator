@@ -1,0 +1,220 @@
+diff --git a/pkg/apis/psmdb/v1/psmdb_defaults.go b/pkg/apis/psmdb/v1/psmdb_defaults.go
+index 53806eedd4c02b828d36a1f2d0acf717b34c230e..28cbe0ff09a0133568e7e3c435b63ef9e6b894eb 100644
+--- a/pkg/apis/psmdb/v1/psmdb_defaults.go
++++ b/pkg/apis/psmdb/v1/psmdb_defaults.go
+@@ -26,7 +26,7 @@ var (
+ 	defaultWiredTigerCacheSizeRatio       = 0.5
+ 	defaultInMemorySizeRatio              = 0.9
+ 	defaultOperationProfilingMode         = OperationProfilingModeSlowOp
+-	defaultImagePullPolicy                = corev1.PullAlways
++	defaultImagePullPolicy                = corev1.PullIfNotPresent
+ )
+ 
+ // CheckNSetDefaults sets default options, overwrites wrong settings
+diff --git a/pkg/apis/psmdb/v1/psmdb_types.go b/pkg/apis/psmdb/v1/psmdb_types.go
+index 611e87ce4728d2767d66ddd006aca80acfa7a0c0..9492619dc0dbe02d9d391245240d9cf4344d1678 100644
+--- a/pkg/apis/psmdb/v1/psmdb_types.go
++++ b/pkg/apis/psmdb/v1/psmdb_types.go
+@@ -65,6 +65,8 @@ type PerconaServerMongoDBSpec struct {
+ 	UpgradeOptions          UpgradeOptions                       `json:"upgradeOptions,omitempty"`
+ 	SchedulerName           string                               `json:"schedulerName,omitempty"`
+ 	ClusterServiceDNSSuffix string                               `json:"clusterServiceDNSSuffix,omitempty"`
++	MongodbExporter         MongodbExporterSpec                  `json:"mongodbExporter,omitempty"`
++	PsmdbLogPath            string                               `json:"psmdbLogPath,omitempty"`
+ }
+ 
+ const (
+@@ -161,6 +163,12 @@ type PMMSpec struct {
+ 	Resources  *ResourcesSpec `json:"resources,omitempty"`
+ }
+ 
++type MongodbExporterSpec struct {
++	Enabled    bool             `json:"enabled,omitempty"`
++	Image      string           `json:"image,omitempty"`
++	Resources  *ResourcesSpec   `json:"resources,omitempty"`
++}
++
+ type MultiAZ struct {
+ 	Affinity            *PodAffinity             `json:"affinity,omitempty"`
+ 	NodeSelector        map[string]string        `json:"nodeSelector,omitempty"`
+diff --git a/pkg/controller/perconaservermongodb/psmdb_controller.go b/pkg/controller/perconaservermongodb/psmdb_controller.go
+index 1c30c2affc6863f7aa6293e978684e0b4ac9d822..e935fe7540143a505b6b2df2b51c0d97a8a6d298 100644
+--- a/pkg/controller/perconaservermongodb/psmdb_controller.go
++++ b/pkg/controller/perconaservermongodb/psmdb_controller.go
+@@ -512,6 +512,17 @@ func (r *ReconcilePerconaServerMongoDB) reconcileStatefulSet(arbiter bool, cr *a
+ 			sfsSpec.Template.Spec.Containers = append(sfsSpec.Template.Spec.Containers, agentC)
+ 		}
+ 
++		if cr.Spec.MongodbExporter.Enabled {
++			MongodbExporterContainer := psmdb.MongodbExporterContainer(cr.Spec.MongodbExporter, cr.Spec.Secrets.Users)
++			res, err := psmdb.CreateResources(cr.Spec.MongodbExporter.Resources)
++			if err != nil {
++				return nil, fmt.Errorf("pmm container error: create resources error: %v", err)
++			}
++			MongodbExporterContainer.Resources = res
++			sfsSpec.Template.Spec.Containers = append(sfsSpec.Template.Spec.Containers, MongodbExporterContainer)
++		}
++
++
+ 		if cr.Spec.PMM.Enabled {
+ 			pmmsec := corev1.Secret{}
+ 			err := r.client.Get(context.TODO(), types.NamespacedName{Name: cr.Spec.Secrets.Users, Namespace: cr.Namespace}, &pmmsec)
+diff --git a/pkg/psmdb/backup/agent.go b/pkg/psmdb/backup/agent.go
+index 6f28d9232759d7bf5895c7d8041baf8f7c13fb81..7023eb7f19aa020434d5a157d54f8312652ae203 100644
+--- a/pkg/psmdb/backup/agent.go
++++ b/pkg/psmdb/backup/agent.go
+@@ -21,7 +21,7 @@ func AgentContainer(cr *api.PerconaServerMongoDB, replsetName string, replsetSiz
+ 	return corev1.Container{
+ 		Name:            agentContainerName,
+ 		Image:           cr.Spec.Backup.Image,
+-		ImagePullPolicy: corev1.PullAlways,
++		ImagePullPolicy: corev1.PullIfNotPresent,
+ 		Env: []corev1.EnvVar{
+ 			{
+ 				Name: "PBM_AGENT_MONGODB_USERNAME",
+diff --git a/pkg/psmdb/container.go b/pkg/psmdb/container.go
+index ce1471e7eb3afb1764b35cdff98ded0758e7c201..0a3390a2ec91ad28ba9130e469423788242f29f4 100644
+--- a/pkg/psmdb/container.go
++++ b/pkg/psmdb/container.go
+@@ -74,6 +74,10 @@ func container(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec, name strin
+ 				Name:  "MONGODB_REPLSET",
+ 				Value: replset.Name,
+ 			},
++			{
++				Name: "__FILE_LOG_PATH__",
++				Value: m.Spec.PsmdbLogPath,
++			},
+ 		},
+ 		EnvFrom: []corev1.EnvFromSource{
+ 			{
+diff --git a/pkg/psmdb/init.go b/pkg/psmdb/init.go
+index 14a3ef3857e35005d90797025a9dd03ebe6698ad..8f0014a41ae0372cd3f17b8cc5ae4b88c53a5762 100644
+--- a/pkg/psmdb/init.go
++++ b/pkg/psmdb/init.go
+@@ -15,6 +15,6 @@ func EntrypointInitContainer(initImageName string) corev1.Container {
+ 		Image:           initImageName,
+ 		Name:            "mongo-init",
+ 		Command:         []string{"/init-entrypoint.sh"},
+-		ImagePullPolicy: corev1.PullAlways,
++		ImagePullPolicy: corev1.PullIfNotPresent,
+ 	}
+ }
+diff --git a/pkg/psmdb/mongodb_exporter.go b/pkg/psmdb/mongodb_exporter.go
+new file mode 100644
+index 0000000000000000000000000000000000000000..1f39b6caee0f1970a30b53ae9cebf1923bf5146e
+--- /dev/null
++++ b/pkg/psmdb/mongodb_exporter.go
+@@ -0,0 +1,59 @@
++package psmdb
++
++import (
++	corev1 "k8s.io/api/core/v1"
++
++	api "github.com/percona/percona-server-mongodb-operator/pkg/apis/psmdb/v1"
++)
++
++// PMMContainer returns a pmm container from given spec
++func MongodbExporterContainer(spec api.MongodbExporterSpec, secrets string) corev1.Container {
++	exportPorts := []corev1.ContainerPort{
++		{
++			ContainerPort: 7777,
++			Name: "http",
++		},
++	}
++
++	dbArgsEnv := []corev1.EnvVar{
++		{
++			Name: "MONGODB_USER",
++			ValueFrom: &corev1.EnvVarSource{
++				SecretKeyRef: &corev1.SecretKeySelector{
++					Key: "MONGODB_CLUSTER_MONITOR_USER",
++					LocalObjectReference: corev1.LocalObjectReference{
++						Name: secrets,
++					},
++				},
++			},
++		},
++		{
++			Name: "MONGODB_PASSWORD",
++			ValueFrom: &corev1.EnvVarSource{
++				SecretKeyRef: &corev1.SecretKeySelector{
++					Key: "MONGODB_CLUSTER_MONITOR_PASSWORD",
++					LocalObjectReference: corev1.LocalObjectReference{
++						Name: secrets,
++					},
++				},
++			},
++		},
++	}
++
++	ExporterArgs := []string{
++		"--web.listen-address=:9104",
++		"--mongodb.uri",
++		"mongodb://$(MONGODB_USER):$(MONGODB_PASSWORD)@127.0.0.1:27017/",
++	}
++
++	mongodb_exporter := corev1.Container{
++		Name:            "mongod-exporter",
++		Image:           spec.Image,
++		ImagePullPolicy: corev1.PullIfNotPresent,
++		Env: dbArgsEnv,
++		Args: ExporterArgs,
++		Ports: exportPorts,
++	}
++
++	return mongodb_exporter
++}
+\ No newline at end of file
+diff --git a/pkg/psmdb/pmm.go b/pkg/psmdb/pmm.go
+index 9c55f1a2e3751c937ed8029c01c85c19ab320333..ae8fbc1d6274abd7869d0cedf98f4304faf5b33e 100644
+--- a/pkg/psmdb/pmm.go
++++ b/pkg/psmdb/pmm.go
+@@ -94,7 +94,7 @@ func PMMContainer(spec api.PMMSpec, secrets string, customLogin bool, clusterNam
+ 	pmm := corev1.Container{
+ 		Name:            "pmm-client",
+ 		Image:           spec.Image,
+-		ImagePullPolicy: corev1.PullAlways,
++		ImagePullPolicy: corev1.PullIfNotPresent,
+ 		Env: []corev1.EnvVar{
+ 			{
+ 				Name:  "PMM_SERVER",
+diff --git a/pkg/psmdb/service.go b/pkg/psmdb/service.go
+index 6675a349561c4256da0e6d4b94c91d27985d95a8..012af1196cc52c3e66b9fd5bfdd95c55645389d7 100644
+--- a/pkg/psmdb/service.go
++++ b/pkg/psmdb/service.go
+@@ -26,6 +26,7 @@ func Service(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec) *corev1.Serv
+ 		"app.kubernetes.io/replset":    replset.Name,
+ 		"app.kubernetes.io/managed-by": "percona-server-mongodb-operator",
+ 		"app.kubernetes.io/part-of":    "percona-server-mongodb",
++		"app.kubernetes.io/component": "mongod",
+ 	}
+ 
+ 	return &corev1.Service{
+@@ -37,6 +38,10 @@ func Service(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec) *corev1.Serv
+ 			Name:        m.Name + "-" + replset.Name,
+ 			Namespace:   m.Namespace,
+ 			Annotations: m.Spec.Mongod.ServiceAnnotations,
++			Labels: map[string]string{
++				"app.kubernetes.io/component": "mongod",
++			},
++
+ 		},
+ 		Spec: corev1.ServiceSpec{
+ 			Ports: []corev1.ServicePort{
+@@ -45,8 +50,15 @@ func Service(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec) *corev1.Serv
+ 					Port:       m.Spec.Mongod.Net.Port,
+ 					TargetPort: intstr.FromInt(int(m.Spec.Mongod.Net.Port)),
+ 				},
++				{
++					Name: "mongod-exporter",
++					Port: 9104,
++					TargetPort: intstr.FromInt(int(9104)),
++					Protocol: "TCP",
++
++				},
+ 			},
+-			ClusterIP:                "None",
++			// ClusterIP:                "None",
+ 			Selector:                 ls,
+ 			LoadBalancerSourceRanges: m.Spec.Mongod.LoadBalancerSourceRanges,
+ 		},

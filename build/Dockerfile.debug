@@ -6,23 +6,35 @@ COPY . .
 ARG GIT_COMMIT
 ARG GIT_BRANCH
 ARG GO_LDFLAGS
+ARG GOOS=linux
+ARG GOARCH=amd64
 ARG CGO_ENABLED=0
 
-RUN set -ex; \
-    mkdir -p build/_output/bin; \
-    GOPROXY=https://goproxy.cn,https://athens.alauda.cn,direct GONOSUMDB="gomod.alauda.cn/*" GO_LDFLAGS=$GO_LDFLAGS CGO_ENABLED=$CGO_ENABLED \
-       go build -ldflags "-w -s -X main.GitCommit=$GIT_COMMIT -X main.GitBranch=$GIT_BRANCH" \
+RUN mkdir -p build/_output/bin \
+    && GOOS=$GOOS GOARCH=$GOARCH CGO_ENABLED=$CGO_ENABLED GO_LDFLAGS=$GO_LDFLAGS \
+       go build -mod=vendor -ldflags "-w -s -X main.GitCommit=$GIT_COMMIT -X main.GitBranch=$GIT_BRANCH" \
            -o build/_output/bin/percona-server-mongodb-operator \
-               cmd/manager/main.go; \
-    cp -r build/_output/bin/percona-server-mongodb-operator /usr/local/bin/percona-server-mongodb-operator
+               cmd/manager/main.go \
+    && cp -r build/_output/bin/percona-server-mongodb-operator /usr/local/bin/percona-server-mongodb-operator
 
-FROM alpine:3.12.1
+FROM percona/percona-server-mongodb:4.2
+RUN microdnf update && microdnf clean all
 
 LABEL name="Percona Server for MongoDB Operator" \
       vendor="Percona" \
       summary="Percona Server for MongoDB Operator simplifies the deployment and management of Percona Server for MongoDB in a Kubernetes or OpenShift environment" \
       description="Percona Server for MongoDB is our free and open-source drop-in replacement for MongoDB Community Edition. It offers all the features and benefits of MongoDB Community Edition, plus additional enterprise-grade functionality." \
       maintainer="Percona Development <info@percona.com>"
+
+RUN set -ex; \
+    dnf install -y \
+        net-tools \
+        telnet \
+        gdb \
+        nc \
+        percona-server-mongodb-shell-debuginfo-${FULL_PERCONA_VERSION} \
+        percona-server-mongodb-tools-debuginfo-${FULL_PERCONA_VERSION} \
+        percona-server-mongodb-debugsource-${FULL_PERCONA_VERSION} \
 
 COPY LICENSE /licenses/
 COPY --from=go_builder /usr/local/bin/percona-server-mongodb-operator /usr/local/bin/percona-server-mongodb-operator

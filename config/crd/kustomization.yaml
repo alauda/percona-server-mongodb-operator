@@ -1,0 +1,4 @@
+resources:
+- bases/perconaservermongodbbackups.crd.yaml
+- bases/perconaservermongodbrestores.crd.yaml
+- bases/perconaservermongodbs.crd.yaml
