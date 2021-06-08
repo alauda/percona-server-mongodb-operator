@@ -61,7 +61,132 @@ spec:
           - {kind: Pod, name: '', version: v1}
           - {kind: Secret, name: '', version: v1}
           - {kind: ConfigMap, name: '', version: v1}
-        specDescriptors: []
+        specDescriptors: 
+          - path: replsets[0].name
+            displayName: Name 
+            x-descriptors:
+            - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:副本集设置'
+            - 'urn:alm:descriptor:com.tectonic.ui:text'
+            - 'urn:alm:descriptor:description:en:The name of the MongoDB Replica Set'
+            - 'urn:alm:descriptor:description:zh:MongoDB集群名称'
+          - path: replsets[0].size
+            displayName: Size 
+            x-descriptors:
+            - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:副本集设置'
+            - 'urn:alm:descriptor:com.tectonic.ui:number'
+            - 'urn:alm:descriptor:com.tectonic.default:3'
+            - 'urn:alm:descriptor:description:en:The size of the MongoDB Replica Set, must be >= 3 for High-Availability'
+            - 'urn:alm:descriptor:description:zh:MongoDB集群数，默认为3，高可用必须大于等于3'
+          - path: replsets[0].resources
+            displayName: Resources
+            x-descriptors:
+            - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:副本集设置'
+            - 'urn:alm:descriptor:com.tectonic.ui:resourceRequirements'
+            - 'urn:alm:descriptor:description:en:Kubernetes CPU,Memory required for MongoDB container'
+            - 'urn:alm:descriptor:description:zh:MongoDB容器所需的k8s资源'
+          - path: replsets[0].affinity.antiAffinityTopologyKey
+            displayName: antiAffinityTopologyKey
+            x-descriptors:
+            - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:副本集设置'
+            - 'urn:alm:descriptor:com.tectonic.ui:text'
+            - 'urn:alm:descriptor:description:en:The Kubernetes topologyKey node affinity constraint for the Replica Set nodes'
+            - 'urn:alm:descriptor:description:zh:副本节点的反亲和性约束'
+          - path: replsets[0].volumeSpec.persistentVolumeClaim.storageClassName
+            displayName: Storage Class Name
+            x-descriptors:
+            - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:副本集设置'
+            - 'urn:alm:descriptor:com.tectonic.ui:text'
+            - 'urn:alm:descriptor:description:en:The Kubernetes Storage Class to use with the MongoDB container Persistent Volume Claim. Use Storage Class with XFS as the default filesystem if possible, for better MongoDB performance'
+            - 'urn:alm:descriptor:description:zh:支持S3的持久存储名'
+          - path: replsets[0].volumeSpec.persistentVolumeClaim.resources.requests.storage
+            displayName: Storage Size
+            x-descriptors:
+            - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:副本集设置'
+            - 'urn:alm:descriptor:com.tectonic.ui:text'
+            - 'urn:alm:descriptor:description:en:The Kubernetes Persistent Volume size for the MongoDB container'
+            - 'urn:alm:descriptor:description:zh:存储容量'
+          - path: secrets.users
+            displayName: user 
+            x-descriptors:
+            - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:访问设置'
+            - 'urn:alm:descriptor:com.tectonic.ui:text'
+            - 'urn:alm:descriptor:description:en:The secret name for the MongoDB users required to run the operator. This secret is required to run the operator.'
+            - 'urn:alm:descriptor:description:zh:MongoDB的访问用户名'
+          - path: secrets.key
+            displayName: user 
+            x-descriptors:
+            - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:访问设置'
+            - 'urn:alm:descriptor:com.tectonic.ui:text'
+            - 'urn:alm:descriptor:description:en:The secret name for the MongoDB Internal Auth Key. This secret is auto-created by the operator if it doesn’t exist.'
+            - 'urn:alm:descriptor:description:zh:MongDB访问密码，如果为空，则会自动生成'
+          - path: mongodbExporter.enabled
+            displayName: exporterEnable 
+            x-descriptors:
+            - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:监控设置'
+            - 'urn:alm:descriptor:com.tectonic.ui:booleanSwitch'
+            - 'urn:alm:descriptor:description:en:Enable or disbale mongodbExporter'
+            - 'urn:alm:descriptor:description:zh:是否开启监控'
+          - path: backup.enabled
+            displayName: enabled 
+            x-descriptors:
+            - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:备份设置'
+            - 'urn:alm:descriptor:com.tectonic.ui:booleanSwitch'
+            - 'urn:alm:descriptor:description:en:Enables or disables making backups'
+            - 'urn:alm:descriptor:description:zh:是否开启备份'
+          - path: backup.restartOnFailure
+            displayName: restartOnFailure 
+            x-descriptors:
+            - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:备份设置'
+            - 'urn:alm:descriptor:com.tectonic.ui:booleanSwitch'
+            - 'urn:alm:descriptor:com.tectonic.ui:fieldDependency:backup.enabled:true'
+            - 'urn:alm:descriptor:description:en:Enables or disables restarting the previously failed backup process'
+            - 'urn:alm:descriptor:description:zh:备份失败后是否重启'
+          - path: backup.tasks.enabled
+            displayName: enableTask
+            x-descriptors:
+            - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:备份设置'
+            - 'urn:alm:descriptor:com.tectonic.ui:booleanSwitch'
+            - 'urn:alm:descriptor:com.tectonic.ui:fieldDependency:backup.enabled:true'
+            - 'urn:alm:descriptor:description:en:Enables or disables this exact backup'
+            - 'urn:alm:descriptor:description:zh:是否开启定时备份'
+          - path: backup.tasks.schedule
+            displayName: taskSchedule
+            x-descriptors:
+            - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:备份设置'
+            - 'urn:alm:descriptor:com.tectonic.ui:text'
+            - 'urn:alm:descriptor:com.tectonic.ui:fieldDependency:backup.enabled:true'
+            - 'urn:alm:descriptor:description:en:The scheduled time to make a backup, specified in the crontab format'
+            - 'urn:alm:descriptor:description:en:定时器配置，符合crontab格式，例如 0 0 * * 6'
+          - path: allowUnsafeConfigurations
+            displayName: allowUnsafeConfigs
+            x-descriptors:
+            - 'urn:alm:descriptor:com.tectonic.ui:advanced'
+            - 'urn:alm:descriptor:com.tectonic.ui:booleanSwitch'
+            - 'urn:alm:descriptor:com.tectonic.ui:en:Prevents users from configuring a cluster with unsafe parameters such as starting the cluster with less than 3 nodes or starting the cluster without TLS/SSL certificates'
+          - path: mongod.security.enableEncryption
+            displayName: enableEncryption
+            x-descriptors:
+            - 'urn:alm:descriptor:com.tectonic.ui:advanced'
+            - 'urn:alm:descriptor:com.tectonic.ui:booleanSwitch'
+            - 'urn:alm:descriptor:description:en:Enables/disables PSMDB data at rest encryption'
+            - 'urn:alm:descriptor:description:en:是否开启数据存储加密'
+          - path: mongod.security.encryptionKeySecret
+            displayName: encryptKeySecret
+            x-descriptors:
+            - 'urn:alm:descriptor:com.tectonic.ui:advanced'
+            - 'urn:alm:descriptor:com.tectonic.ui:fieldDependency:mongod.security.enableEncryption:true'
+            - 'urn:alm:descriptor:com.tectonic.ui:text'
+            - 'urn:alm:descriptor:description:en:Specifies a secret object with the encryption key'
+            - 'urn:alm:descriptor:description:en:加密密钥'
+          - path: mongod.security.encryptionCipherMode
+            displayName: encryptCipherMode
+            x-descriptors:
+            - 'urn:alm:descriptor:com.tectonic.ui:advanced'
+            - 'urn:alm:descriptor:com.tectonic.ui:fieldDependency:mongod.security.enableEncryption:true'
+            - 'urn:alm:descriptor:com.tectonic.ui:select:AES256-CBC'
+            - 'urn:alm:descriptor:com.tectonic.ui:select:AES256-GCM'
+            - 'urn:alm:descriptor:description:en:Sets PSMDB encryption cipher mode'
+            - 'urn:alm:descriptor:description:en:加密方式'
         statusDescriptors: []
         version: v1 # v1-5-0
       - description: Percona Server for MongoDB 备份实例
