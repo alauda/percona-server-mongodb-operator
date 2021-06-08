@@ -168,7 +168,7 @@ spec:
   maturity: stable
   minKubeVersion: ''
   provider: {name: 平台}
-  replaces: ''
+  replaces: 'percona-server-mongodb-operator.v1.5.0'
   selector:
     matchLabels: {}
   skips: []
