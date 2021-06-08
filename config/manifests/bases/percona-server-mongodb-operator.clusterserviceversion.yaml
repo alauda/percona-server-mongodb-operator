@@ -74,7 +74,7 @@ spec:
             - 'urn:alm:descriptor:com.tectonic.ui:number'
             - 'urn:alm:descriptor:com.tectonic.default:3'
             - 'urn:alm:descriptor:description:en:The size of the MongoDB Replica Set, must be >= 3 for High-Availability'
-            - 'urn:alm:descriptor:description:zh:MongoDB集群数，高可用必须大于等于3，默认为3'
+            - 'urn:alm:descriptor:description:zh:MongoDB集群数，默认值为3，高可用必须大于等于3'
           - path: replsets[0].resources
             displayName: Resources
             x-descriptors:
