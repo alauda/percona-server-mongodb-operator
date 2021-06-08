@@ -169,7 +169,7 @@ spec:
             - 'urn:alm:descriptor:description:en:Enables/disables PSMDB data at rest encryption'
             - 'urn:alm:descriptor:description:en:是否开启数据存储加密'
           - path: mongod.security.encryptionKeySecret
-            displayName: encryptionKeySecret
+            displayName: encryptKeySecret
             x-descriptors:
             - 'urn:alm:descriptor:com.tectonic.ui:advanced'
             - 'urn:alm:descriptor:com.tectonic.ui:fieldDependency:mongod.security.enableEncryption:true'
@@ -177,7 +177,7 @@ spec:
             - 'urn:alm:descriptor:description:en:Specifies a secret object with the encryption key'
             - 'urn:alm:descriptor:description:en:加密密钥'
           - path: mongod.security.encryptionCipherMode
-            displayName: encryptionCipherMode
+            displayName: encryptCipherMode
             x-descriptors:
             - 'urn:alm:descriptor:com.tectonic.ui:advanced'
             - 'urn:alm:descriptor:com.tectonic.ui:fieldDependency:mongod.security.enableEncryption:true'
