@@ -113,12 +113,12 @@ spec:
             - 'urn:alm:descriptor:description:en:The secret name for the MongoDB users required to run the operator. This secret is required to run the operator.'
             - 'urn:alm:descriptor:description:zh:MongoDB的访问用户名'
           - path: secrets.key
-            displayName: user 
+            displayName: key 
             x-descriptors:
             - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:访问设置'
             - 'urn:alm:descriptor:com.tectonic.ui:text'
             - 'urn:alm:descriptor:description:en:The secret name for the MongoDB Internal Auth Key. This secret is auto-created by the operator if it doesn’t exist.'
-            - 'urn:alm:descriptor:description:zh:MongDB访问密码，如果为空，则会自动生成'
+            - 'urn:alm:descriptor:description:zh:MongDB访问密码，可以为空，如果为空，则会自动生成'
           - path: mongodbExporter.enabled
             displayName: exporterEnable 
             x-descriptors:
@@ -156,20 +156,21 @@ spec:
             - 'urn:alm:descriptor:com.tectonic.ui:text'
             - 'urn:alm:descriptor:com.tectonic.ui:fieldDependency:backup.enabled:true'
             - 'urn:alm:descriptor:description:en:The scheduled time to make a backup, specified in the crontab format'
-            - 'urn:alm:descriptor:description:en:定时器配置，符合crontab格式，例如 0 0 * * 6'
+            - 'urn:alm:descriptor:description:zh:定时器配置，符合crontab格式，例如 0 0 * * 6'
           - path: allowUnsafeConfigurations
             displayName: allowUnsafeConfigs
             x-descriptors:
             - 'urn:alm:descriptor:com.tectonic.ui:advanced'
             - 'urn:alm:descriptor:com.tectonic.ui:booleanSwitch'
             - 'urn:alm:descriptor:com.tectonic.ui:en:Prevents users from configuring a cluster with unsafe parameters such as starting the cluster with less than 3 nodes or starting the cluster without TLS/SSL certificates'
+            - 'urn:alm:descriptor:description:zh:是否支持非安全参数配置，比如启动节点少于3个，或不开启tls/ssl'
           - path: mongod.security.enableEncryption
             displayName: enableEncryption
             x-descriptors:
             - 'urn:alm:descriptor:com.tectonic.ui:advanced'
             - 'urn:alm:descriptor:com.tectonic.ui:booleanSwitch'
             - 'urn:alm:descriptor:description:en:Enables/disables PSMDB data at rest encryption'
-            - 'urn:alm:descriptor:description:en:是否开启数据存储加密'
+            - 'urn:alm:descriptor:description:zh:是否开启数据存储加密'
           - path: mongod.security.encryptionKeySecret
             displayName: encryptKeySecret
             x-descriptors:
@@ -177,7 +178,7 @@ spec:
             - 'urn:alm:descriptor:com.tectonic.ui:fieldDependency:mongod.security.enableEncryption:true'
             - 'urn:alm:descriptor:com.tectonic.ui:text'
             - 'urn:alm:descriptor:description:en:Specifies a secret object with the encryption key'
-            - 'urn:alm:descriptor:description:en:加密密钥'
+            - 'urn:alm:descriptor:description:zh:加密密钥'
           - path: mongod.security.encryptionCipherMode
             displayName: encryptCipherMode
             x-descriptors:
