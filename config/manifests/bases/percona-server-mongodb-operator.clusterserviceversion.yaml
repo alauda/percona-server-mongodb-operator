@@ -141,7 +141,7 @@ spec:
             - 'urn:alm:descriptor:com.tectonic.ui:fieldDependency:backup.enabled:true'
             - 'urn:alm:descriptor:description:en:Enables or disables restarting the previously failed backup process'
             - 'urn:alm:descriptor:description:zh:备份失败后是否重启'
-          - path: backup.tasks.enabled
+          - path: backup.tasks[0].enabled
             displayName: enableTask
             x-descriptors:
             - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:备份设置'
@@ -149,7 +149,7 @@ spec:
             - 'urn:alm:descriptor:com.tectonic.ui:fieldDependency:backup.enabled:true'
             - 'urn:alm:descriptor:description:en:Enables or disables this exact backup'
             - 'urn:alm:descriptor:description:zh:是否开启定时备份'
-          - path: backup.tasks.schedule
+          - path: backup.tasks[0].schedule
             displayName: taskSchedule
             x-descriptors:
             - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:备份设置'
@@ -187,7 +187,7 @@ spec:
             - 'urn:alm:descriptor:com.tectonic.ui:select:AES256-CBC'
             - 'urn:alm:descriptor:com.tectonic.ui:select:AES256-GCM'
             - 'urn:alm:descriptor:description:en:Sets PSMDB encryption cipher mode'
-            - 'urn:alm:descriptor:description:en:加密方式'
+            - 'urn:alm:descriptor:description:zh:加密方式，只支持AES256-CBC、AES256-GCM两种模式'
         statusDescriptors: []
         version: v1 # v1-5-0
       - description: Percona Server for MongoDB 备份实例
