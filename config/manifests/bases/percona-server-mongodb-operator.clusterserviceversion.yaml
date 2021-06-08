@@ -118,12 +118,12 @@ spec:
             - 'urn:alm:descriptor:description:en:The secret name for the MongoDB Internal Auth Key. This secret is auto-created by the operator if it doesn’t exist.'
             - 'urn:alm:descriptor:description:zh:MongDB访问密码，如果为空，则会自动生成'
           - path: mongodbExporter.enabled
-            displayName: exporterEnable 
+            displayName: enableExporter 
             x-descriptors:
             - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:监控设置'
             - 'urn:alm:descriptor:com.tectonic.ui:booleanSwitch'
             - 'urn:alm:descriptor:description:en:Enable or disbale mongodbExporter'
-            - 'urn:alm:descriptor:description:zh:是否开启MongoDB监控'
+            - 'urn:alm:descriptor:description:zh:是否开启监控'
           - path: backup.enabled
             displayName: enabled 
             x-descriptors:
