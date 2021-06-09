@@ -93,7 +93,7 @@ spec:
       fsGroup: 1001
     serviceAccountName: percona-server-mongodb-operator
     storages: {}
-    tasks: {}
+    tasks: []
   updateStrategy: SmartUpdate
   upgradeOptions:
     apply: never
