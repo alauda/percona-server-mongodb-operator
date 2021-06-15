@@ -37,7 +37,7 @@ metadata:
                                   "version":"v1"
                               },
                               "versionPath":".status.mongoVersion",
-                              "versionMatch":"<=4.2.10"
+                              "versionMatch":"<=4.2.10",
                               "risk":{
                                   "riskLevel":"Low",
                                   "description":"可以平滑升级"
@@ -190,7 +190,7 @@ spec:
               - 'urn:alm:descriptor:description:en:Sets PSMDB encryption cipher mode'
               - 'urn:alm:descriptor:description:zh:加密方式，只支持AES256-CBC、AES256-GCM两种模式'
         statusDescriptors: []
-        version: v1 # v1-5-0
+        version: v1
       - description: Percona Server for MongoDB 备份实例
         displayName: MongoDBBackup
         kind: PerconaServerMongoDBBackup

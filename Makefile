@@ -78,7 +78,7 @@ endif
 bundle: operator-sdk kustomize ## 构建bundle
 	@cd config/manager && $(KUSTOMIZE) edit set image controller=$(OPERATOR_IMAGE):$(CONTROLLER_VERSION)
 	@cd config/manager && $(KUSTOMIZE) edit add annotation -f operatorversion:$(CONTROLLER_VERSION)
-	@$(KUSTOMIZE) build config/manifests | $(OPERATOR_SDK) generate bundle --version $(BUNDLE_VERSION)
+	@$(KUSTOMIZE) build config/manifests | $(OPERATOR_SDK) generate bundle --version $(BUNDLE_VERSION) --channels stable
 	@$(OPERATOR_SDK) bundle validate ./bundle
 
 .PHONY: bundle_image
