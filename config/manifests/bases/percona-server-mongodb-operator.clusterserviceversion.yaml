@@ -23,6 +23,7 @@ metadata:
 
 
 
+
           "fromOperator":{
               "moduleName":"percona-server-mongodb",
               "upgradeFrom":[
@@ -227,6 +228,7 @@ spec:
 
 
 
+
       - **集群扩展** - 通过改变 size 参数来增加和移除副本集成员 。 最小可用副本集成员大小建议为3.
       - **监控** - 轻松部署 Percona监视和管理(PMM) ，以监视Percona服务器的MongoDB副本集。安装过程推荐使用Helm(Kubernetes的软件包管理器)。
       - **自动备份** - 配置自动备份 使其按计划运行或随时按需运行。备份是使用Percona Backup for MongoDB（PBM）执行的，可以存储在本地PV上或任何与S3兼容的云存储提供商中。
@@ -237,6 +239,7 @@ spec:
     将PSMDB用户Secret添加到Kubernetes。用户信息必须放在文件 secrets.yaml 的数据部分中，其中包含用户帐户通过Base64编码的登录名和密码。
 
     以下是一个正确的secrets.yaml示例文件。
+
 
 
 
@@ -266,6 +269,7 @@ spec:
     ### 快速上手
 
     要快速启动并运行，请查看我们的[快速入门指南](docs/container-usermanual/4adminview/7operators/operatordoc/08mongodb/)
+
 
 
 
@@ -309,7 +313,7 @@ spec:
       image: build-harbor.alauda.cn/middleware/mongodb-exporter:acp-main-v0.20.1.2106021349
       support_arm: true
     - name: values-yaml-mongo-operator
-      image: build-harbor.alauda.cn/middleware/percona-server-mongodb-operator:v3.5-33-g8d5dc0c2
+      image: build-harbor.alauda.cn/middleware/percona-server-mongodb-operator:v3.5-36-g827f93e4
       support_arm: true
     - name: values-yaml-mongo-server
       image: build-harbor.alauda.cn/middleware/percona-server-mongodb:mongo-acp-main-4.2.2106031545
