@@ -8,6 +8,7 @@ metadata:
     operatorframework.io/arch.arm64: supported
   annotations:
     alm-examples: '[]'
+    olm.skipRange: ">=1.5.0 <3.6.0"
     capabilities: 'Deep Insights'
     categories: 'Database'
     certified: 'true'
@@ -30,7 +31,7 @@ metadata:
               "moduleName":"percona-server-mongodb",
               "upgradeFrom":[
                   {
-                      "versionMatch":"1.5.0",
+                      "versionMatch":">=1.5.0 <3.6.0",
                       "riskLevel":"Low",
                       "description":"用于问题修复的小版本更新",
                       "instanceConstraints":[
@@ -308,7 +309,6 @@ spec:
   maturity: stable
   minKubeVersion: ''
   provider: {name: 平台}
-  replaces: 'percona-server-mongodb-operator.v1.5.0'
   selector:
     matchLabels: {}
   skips: []
