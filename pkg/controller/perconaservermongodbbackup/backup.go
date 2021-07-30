@@ -5,12 +5,11 @@ import (
 	"time"
 
 	"github.com/percona/percona-backup-mongodb/pbm"
+	api "github.com/percona/percona-server-mongodb-operator/pkg/apis/psmdb/v1"
+	"github.com/percona/percona-server-mongodb-operator/pkg/psmdb/backup"
 	"github.com/pkg/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
-
-	api "github.com/percona/percona-server-mongodb-operator/pkg/apis/psmdb/v1"
-	"github.com/percona/percona-server-mongodb-operator/pkg/psmdb/backup"
 )
 
 type Backup struct {
@@ -45,9 +44,9 @@ func (b *Backup) Start(cr *api.PerconaServerMongoDBBackup) (api.PerconaServerMon
 		return status, errors.Errorf("unable to get storage '%s'", cr.Spec.StorageName)
 	}
 
-	err := b.pbm.SetConfig(stg)
+	err := b.pbm.SetConfig(stg, b.spec.PITR)
 	if err != nil {
-		return api.PerconaServerMongoDBBackupStatus{}, errors.Wrapf(err, "set backup config with sorage %s", cr.Spec.StorageName)
+		return api.PerconaServerMongoDBBackupStatus{}, errors.Wrapf(err, "set backup config with storage %s", cr.Spec.StorageName)
 	}
 
 	name := time.Now().UTC().Format(time.RFC3339)
@@ -90,7 +89,7 @@ func (b *Backup) Status(cr *api.PerconaServerMongoDBBackup) (api.PerconaServerMo
 		return status, errors.Wrap(err, "get pbm backup meta")
 	}
 	if meta == nil || meta.Name == "" {
-		log.Info("No backup found", "PBM name", cr.Status.PBMname, "backup", cr.Name)
+		log.Info("Waiting for backup metadata", "PBM name", cr.Status.PBMname, "backup", cr.Name)
 		return status, nil
 	}
 

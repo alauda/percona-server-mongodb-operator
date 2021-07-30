@@ -77,6 +77,46 @@ type WriteConcern struct {
 	Journal      bool        `bson:"j,omitempty" json:"j,omitempty"`
 }
 
+type BalancerStatus struct {
+	Mode       string `json:"mode"`
+	OKResponse `bson:",inline"`
+}
+
+type DBList struct {
+	DBs []struct {
+		Name string `bson:"name" json:"name"`
+	} `bson:"databases" json:"databases"`
+	OKResponse `bson:",inline"`
+}
+
+type ShardList struct {
+	Shards []struct {
+		ID    string `json:"_id" bson:"_id"`
+		Host  string `json:"host" bson:"host"`
+		State int    `json:"state" bson:"state"`
+	} `json:"shards" bson:"shards"`
+	OKResponse `bson:",inline"`
+}
+
+type FCV struct {
+	FCV struct {
+		Version string `json:"version" bson:"version"`
+	} `json:"featureCompatibilityVersion" bson:"featureCompatibilityVersion"`
+	OKResponse `bson:",inline"`
+}
+
+const ShardRemoveCompleted string = "completed"
+
+type ShardRemoveResp struct {
+	Msg       string `json:"msg" bson:"msg"`
+	State     string `json:"state" bson:"state"`
+	Remaining struct {
+		Chunks      int `json:"chunks" bson:"chunks"`
+		JumboChunks int `json:"jumboChunks" bson:"jumboChunks"`
+	} `json:"remaining" bson:"remaining"`
+	OKResponse `bson:",inline"`
+}
+
 type Status struct {
 	Set                     string         `bson:"set" json:"set"`
 	Date                    time.Time      `bson:"date" json:"date"`

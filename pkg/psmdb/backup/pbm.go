@@ -4,8 +4,11 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/percona/percona-backup-mongodb/pbm/storage/s3"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 
 	"github.com/percona/percona-backup-mongodb/pbm"
 	"github.com/pkg/errors"
@@ -53,10 +56,8 @@ func NewPBM(c client.Client, cluster *api.PerconaServerMongoDB) (*PBM, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "get pods list for replset %s", rs.Name)
 	}
-	usersSecretName := cluster.Spec.Secrets.Users
-	if cluster.CompareVersion("1.5.0") >= 0 {
-		usersSecretName = "internal-" + cluster.Name + "-users"
-	}
+
+	usersSecretName := api.UserSecretName(cluster)
 	scr, err := secret(c, cluster.Namespace, usersSecretName)
 	if err != nil {
 		return nil, errors.Wrap(err, "get secrets")
@@ -66,10 +67,11 @@ func NewPBM(c client.Client, cluster *api.PerconaServerMongoDB) (*PBM, error) {
 		cluster.Spec.ClusterServiceDNSSuffix = api.DefaultDNSSuffix
 	}
 
-	addrs, err := psmdb.GetReplsetAddrs(c, cluster, rs, pods.Items)
+	addrs, err := psmdb.GetReplsetAddrs(c, cluster, rs.Name, rs.Expose.Enabled, pods.Items)
 	if err != nil {
 		return nil, errors.Wrap(err, "get mongo addr")
 	}
+
 	murl := fmt.Sprintf("mongodb://%s:%s@%s/",
 		scr.Data["MONGODB_BACKUP_USER"],
 		scr.Data["MONGODB_BACKUP_PASSWORD"],
@@ -81,6 +83,8 @@ func NewPBM(c client.Client, cluster *api.PerconaServerMongoDB) (*PBM, error) {
 		return nil, errors.Wrapf(err, "create PBM connection to %s", strings.Join(addrs, ","))
 	}
 
+	pbmc.InitLogger("", "")
+
 	return &PBM{
 		C:         pbmc,
 		k8c:       c,
@@ -90,7 +94,7 @@ func NewPBM(c client.Client, cluster *api.PerconaServerMongoDB) (*PBM, error) {
 
 // SetConfig sets the pbm config with storage defined in the cluster CR
 // by given storageName
-func (b *PBM) SetConfig(stg api.BackupStorageSpec) error {
+func (b *PBM) SetConfig(stg api.BackupStorageSpec, pitr api.PITRSpec) error {
 	switch stg.Type {
 	case api.BackupStorageS3:
 		if stg.S3.CredentialsSecret == "" {
@@ -101,6 +105,9 @@ func (b *PBM) SetConfig(stg api.BackupStorageSpec) error {
 			return errors.Wrap(err, "getting s3 credentials secret name")
 		}
 		conf := pbm.Config{
+			PITR: pbm.PITRConf{
+				Enabled: pitr.Enabled,
+			},
 			Storage: pbm.StorageConf{
 				Type: pbm.StorageS3,
 				S3: s3.Conf{
@@ -142,4 +149,137 @@ func secret(cl client.Client, namespace, secretName string) (*corev1.Secret, err
 	}
 	err := cl.Get(context.TODO(), types.NamespacedName{Name: secretName, Namespace: namespace}, secret)
 	return secret, err
+}
+
+type LockHeaderPredicate func(pbm.LockHeader) bool
+
+func NotPITRLock(l pbm.LockHeader) bool {
+	return l.Type != pbm.CmdPITR
+}
+
+func IsPITRLock(l pbm.LockHeader) bool {
+	return l.Type == pbm.CmdPITR
+}
+
+func NotJobLock(j Job) LockHeaderPredicate {
+	return func(h pbm.LockHeader) bool {
+		var jobCommand pbm.Command
+
+		switch j.Type {
+		case TypeBackup:
+			jobCommand = pbm.CmdBackup
+		case TypeRestore:
+			jobCommand = pbm.CmdRestore
+		case TypePITRestore:
+			jobCommand = pbm.CmdPITRestore
+		default:
+			return true
+		}
+
+		return h.Type != jobCommand
+	}
+}
+
+func (b *PBM) HasLocks(predicates ...LockHeaderPredicate) (bool, error) {
+	locks, err := b.C.GetLocks(&pbm.LockHeader{})
+	if err != nil {
+		return false, errors.Wrap(err, "getting lock data")
+	}
+
+	allowedByAllPredicates := func(l pbm.LockHeader) bool {
+		for _, allow := range predicates {
+			if !allow(l) {
+				return false
+			}
+		}
+		return true
+	}
+
+	for _, l := range locks {
+		if allowedByAllPredicates(l.LockHeader) {
+			return true, nil
+		}
+	}
+
+	return false, nil
+}
+
+var errNoOplogsForPITR = errors.New("there is no oplogs that can cover the date/time or no oplogs at all")
+
+func (b *PBM) GetLastPITRChunk() (*pbm.PITRChunk, error) {
+	nodeInfo, err := b.C.GetNodeInfo()
+	if err != nil {
+		return nil, errors.Wrap(err, "getting node information")
+	}
+
+	c, err := b.C.PITRLastChunkMeta(nodeInfo.SetName)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, errNoOplogsForPITR
+		}
+		return nil, errors.Wrap(err, "getting last PITR chunk")
+	}
+
+	if c == nil {
+		return nil, errNoOplogsForPITR
+	}
+
+	return c, nil
+}
+
+func (b *PBM) GetTimelinesPITR() ([]pbm.Timeline, error) {
+	var (
+		now       = time.Now().UTC().Unix()
+		timelines [][]pbm.Timeline
+	)
+
+	shards, err := b.C.ClusterMembers(nil)
+	if err != nil {
+		return nil, errors.Wrap(err, "getting cluster members")
+	}
+
+	for _, s := range shards {
+		rsTimelines, err := b.C.PITRGetValidTimelines(s.RS, now, nil)
+		if err != nil {
+			return nil, errors.Wrapf(err, "getting timelines for %s", s.RS)
+		}
+
+		timelines = append(timelines, rsTimelines)
+	}
+
+	return pbm.MergeTimelines(timelines...), nil
+}
+
+func (b *PBM) GetLatestTimelinePITR() (pbm.Timeline, error) {
+	timelines, err := b.GetTimelinesPITR()
+	if err != nil {
+		return pbm.Timeline{}, err
+	}
+
+	if len(timelines) == 0 {
+		return pbm.Timeline{}, errNoOplogsForPITR
+	}
+
+	return timelines[len(timelines)-1], nil
+}
+
+func (b *PBM) GetPITRChunkContains(unixTS int64) (*pbm.PITRChunk, error) {
+	nodeInfo, err := b.C.GetNodeInfo()
+	if err != nil {
+		return nil, errors.Wrap(err, "getting node information")
+	}
+
+	c, err := b.C.PITRGetChunkContains(nodeInfo.SetName, primitive.Timestamp{T: uint32(unixTS)})
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, errNoOplogsForPITR
+		}
+		return nil, errors.Wrap(err, "getting PITR chunk for ts")
+	}
+
+	if c == nil {
+		return nil, errNoOplogsForPITR
+	}
+
+	return c, nil
 }

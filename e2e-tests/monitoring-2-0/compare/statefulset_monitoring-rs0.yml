@@ -1,11 +1,18 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
+  annotations: {}
   generation: 1
+  labels:
+    app.kubernetes.io/component: mongod
+    app.kubernetes.io/instance: monitoring
+    app.kubernetes.io/managed-by: percona-server-mongodb-operator
+    app.kubernetes.io/name: percona-server-mongodb
+    app.kubernetes.io/part-of: percona-server-mongodb
+    app.kubernetes.io/replset: rs0
   name: monitoring-rs0
   ownerReferences:
-    - apiVersion: psmdb.percona.com/v1
-      controller: true
+    - controller: true
       kind: PerconaServerMongoDB
       name: monitoring
 spec:
@@ -44,8 +51,10 @@ spec:
             - --sslAllowInvalidCertificates
             - --sslMode=preferSSL
             - --clusterAuthMode=x509
-            - --profile=2
-            - --rateLimit=1
+            - --shardsvr
+            - --slowms=100
+            - --profile=1
+            - --rateLimit=100
             - --enableEncryption
             - --encryptionKeyFile=/etc/mongodb-encryption/encryption-key
             - --wiredTigerIndexPrefixCompression=true
@@ -66,9 +75,15 @@ spec:
           livenessProbe:
             exec:
               command:
-                - mongodb-healthcheck
+                - /data/db/mongodb-healthcheck
                 - k8s
                 - liveness
+                - --ssl
+                - --sslInsecure
+                - --sslCAFile
+                - /etc/mongodb-ssl/ca.crt
+                - --sslPEMKeyFile
+                - /tmp/tls.pem
                 - --startupDelaySeconds
                 - "7200"
             failureThreshold: 4
@@ -110,6 +125,8 @@ spec:
             - mountPath: /etc/mongodb-encryption
               name: monitoring-mongodb-encryption-key
               readOnly: true
+            - mountPath: /etc/users-secret
+              name: users-secret-file
           workingDir: /data/db
         - env:
             - name: PMM_SERVER
@@ -146,7 +163,77 @@ spec:
                 secretKeyRef:
                   key: PMM_SERVER_PASSWORD
                   name: internal-monitoring-users
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.name
+            - name: POD_NAMESPASE
+              valueFrom:
+                fieldRef:
+                  apiVersion: v1
+                  fieldPath: metadata.namespace
+            - name: PMM_AGENT_SERVER_ADDRESS
+              value: monitoring-service
+            - name: PMM_AGENT_LISTEN_PORT
+              value: "7777"
+            - name: PMM_AGENT_PORTS_MIN
+              value: "30100"
+            - name: PMM_AGENT_PORTS_MAX
+              value: "30105"
+            - name: PMM_AGENT_CONFIG_FILE
+              value: /usr/local/percona/pmm2/config/pmm-agent.yaml
+            - name: PMM_AGENT_SERVER_INSECURE_TLS
+              value: "1"
+            - name: PMM_AGENT_LISTEN_ADDRESS
+              value: 0.0.0.0
+            - name: PMM_AGENT_SETUP_NODE_NAME
+              value: $(POD_NAMESPASE)-$(POD_NAME)
+            - name: PMM_AGENT_SETUP
+              value: "1"
+            - name: PMM_AGENT_SETUP_FORCE
+              value: "1"
+            - name: PMM_AGENT_SETUP_NODE_TYPE
+              value: container
+            - name: PMM_AGENT_SETUP_METRICS_MODE
+              value: push
+            - name: PMM_ADMIN_CUSTOM_PARAMS
+              value: --environment=dev-mongod
+            - name: PMM_AGENT_SERVER_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  key: PMM_SERVER_USER
+                  name: internal-monitoring-users
+            - name: PMM_AGENT_SERVER_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: PMM_SERVER_PASSWORD
+                  name: internal-monitoring-users
+            - name: CLUSTER_NAME
+              value: monitoring
+            - name: PMM_AGENT_PRERUN_SCRIPT
+              value: |-
+                pmm-admin status --wait=10s;
+                pmm-admin add $(DB_TYPE) $(PMM_ADMIN_CUSTOM_PARAMS) --skip-connection-check --metrics-mode=push  --username=$(DB_USER) --password=$(DB_PASSWORD) --cluster=$(CLUSTER_NAME) --service-name=$(PMM_AGENT_SETUP_NODE_NAME) --host=$(DB_HOST) --port=$(DB_PORT);
+                pmm-admin annotate --service-name=$(PMM_AGENT_SETUP_NODE_NAME) 'Service restarted'
           imagePullPolicy: Always
+          lifecycle:
+            preStop:
+              exec:
+                command:
+                  - bash
+                  - -c
+                  - pmm-admin inventory remove node --force $(pmm-admin status --json | python -c "import sys, json; print(json.load(sys.stdin)['pmm_agent_status']['node_id'])")
+          livenessProbe:
+            failureThreshold: 3
+            httpGet:
+              path: /local/Status
+              port: 7777
+              scheme: HTTP
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            successThreshold: 1
+            timeoutSeconds: 5
           name: pmm-client
           ports:
             - containerPort: 7777
@@ -182,6 +269,8 @@ spec:
       schedulerName: default-scheduler
       securityContext:
         fsGroup: 1001
+      serviceAccount: default
+      serviceAccountName: default
       terminationGracePeriodSeconds: 30
       volumes:
         - name: monitoring-mongodb-keyfile
@@ -204,6 +293,10 @@ spec:
             defaultMode: 288
             optional: true
             secretName: monitoring-ssl-internal
+        - name: users-secret-file
+          secret:
+            defaultMode: 420
+            secretName: internal-monitoring-users
   updateStrategy:
     rollingUpdate:
       partition: 0
