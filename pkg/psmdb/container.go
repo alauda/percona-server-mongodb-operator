@@ -89,7 +89,7 @@ func container(cr *api.PerconaServerMongoDB, replset *api.ReplsetSpec, name stri
 			},
 			{
 				Name:  "__FILE_LOG_PATH__",
-				Value: m.Spec.PsmdbLogPath,
+				Value: cr.Spec.PsmdbLogPath,
 			},
 		},
 		EnvFrom: []corev1.EnvFromSource{
