@@ -8,7 +8,7 @@ metadata:
     operatorframework.io/arch.arm64: supported
   annotations:
     alm-examples: '[]'
-    olm.skipRange: ">=1.5.0 <3.6.0"
+    olm.skipRange: ">=1.5.0 <CURRENT-VERSION"
     capabilities: 'Deep Insights'
     categories: 'Database'
     certified: 'true'
@@ -35,7 +35,7 @@ metadata:
               "moduleName":"percona-server-mongodb",
               "upgradeFrom":[
                   {
-                      "versionMatch":">=1.5.0 <3.6.0",
+                      "versionMatch":">=1.5.0 <CURRENT-VERSION",
                       "riskLevel":"Low",
                       "description":"用于问题修复的小版本更新",
                       "instanceConstraints":[
