@@ -51,8 +51,8 @@ func main() {
 
 	cnf, err := db.NewConfig(
 		app,
-		pkg.EnvMongoDBUserAdminUser,
-		pkg.EnvMongoDBUserAdminPassword,
+		pkg.EnvMongoDBClusterMonitorUser,
+		pkg.EnvMongoDBClusterMonitorPassword,
 	)
 	if err != nil {
 		log.Fatalf("new cfg: %s", err)
