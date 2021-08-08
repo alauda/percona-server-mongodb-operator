@@ -33,8 +33,9 @@ func Dial(conf *Config) (*mongo.Client, error) {
 		SetHosts(conf.Hosts).
 		SetReplicaSet(conf.ReplSetName).
 		SetAuth(options.Credential{
-			Password: conf.Password,
-			Username: conf.Username,
+			Password:   conf.Password,
+			Username:   conf.Username,
+			AuthSource: "admin",
 		}).
 		SetWriteConcern(writeconcern.New(writeconcern.WMajority(), writeconcern.J(true))).
 		SetReadPreference(readpref.Primary()).SetTLSConfig(conf.TLSConf)
