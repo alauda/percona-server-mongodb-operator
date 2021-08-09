@@ -53,13 +53,13 @@ func Dial(conf *Config) (*mongo.Client, error) {
 		}
 	}()
 
-	//ctx, pingcancel := context.WithTimeout(context.Background(), 2*time.Second)
-	//defer pingcancel()
+	ctx, pingcancel := context.WithTimeout(context.Background(), 2*time.Second)
+	defer pingcancel()
 
-	//err = client.Ping(ctx, readpref.Primary())
-	//if err != nil {
-	//	return nil, errors.Errorf("failed to ping mongo: %v", err)
-	//}
+	err = client.Ping(ctx, readpref.Primary())
+	if err != nil {
+		return nil, errors.Errorf("failed to ping mongo: %v", err)
+	}
 
 	return client, nil
 }
