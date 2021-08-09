@@ -25,7 +25,7 @@ func Service(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec) *corev1.Serv
 		"app.kubernetes.io/replset":    replset.Name,
 		"app.kubernetes.io/managed-by": "percona-server-mongodb-operator",
 		"app.kubernetes.io/part-of":    "percona-server-mongodb",
-		"app.kubernetes.io/component": "mongod",
+		"app.kubernetes.io/component":  replset.Name,
 	}
 
 	return &corev1.Service{
@@ -46,11 +46,10 @@ func Service(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec) *corev1.Serv
 					TargetPort: intstr.FromInt(int(m.Spec.Mongod.Net.Port)),
 				},
 				{
-					Name: "mongod-exporter",
-					Port: 9104,
+					Name:       "mongod-exporter",
+					Port:       9104,
 					TargetPort: intstr.FromInt(int(9104)),
-					Protocol: "TCP",
-
+					Protocol:   "TCP",
 				},
 			},
 			// ClusterIP:                "None",
@@ -227,7 +226,6 @@ func getExtAddr(cl client.Client, namespace string, pod corev1.Pod) (string, err
 	if err != nil {
 		return "", fmt.Errorf("get service hostname: %v", err)
 	}
-
 
 	return hostname.String(), nil
 }
