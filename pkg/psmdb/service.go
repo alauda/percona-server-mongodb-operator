@@ -25,7 +25,11 @@ func Service(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec) *corev1.Serv
 		"app.kubernetes.io/replset":    replset.Name,
 		"app.kubernetes.io/managed-by": "percona-server-mongodb-operator",
 		"app.kubernetes.io/part-of":    "percona-server-mongodb",
-		"app.kubernetes.io/component":  replset.Name,
+	}
+	if replset.Name == "cfg" {
+		ls["app.kubernetes.io/component"] = "cfg"
+	} else {
+		ls["app.kubernetes.io/component"] = "mongod"
 	}
 
 	return &corev1.Service{
