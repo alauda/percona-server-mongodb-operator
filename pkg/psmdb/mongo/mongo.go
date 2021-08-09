@@ -33,9 +33,8 @@ func Dial(conf *Config) (*mongo.Client, error) {
 		SetHosts(conf.Hosts).
 		SetReplicaSet(conf.ReplSetName).
 		SetAuth(options.Credential{
-			Password:   conf.Password,
-			Username:   conf.Username,
-			AuthSource: "admin",
+			Password: conf.Password,
+			Username: conf.Username,
 		}).
 		SetWriteConcern(writeconcern.New(writeconcern.WMajority(), writeconcern.J(true))).
 		SetReadPreference(readpref.Primary()).SetTLSConfig(conf.TLSConf)
@@ -54,13 +53,13 @@ func Dial(conf *Config) (*mongo.Client, error) {
 		}
 	}()
 
-	ctx, pingcancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer pingcancel()
+	//ctx, pingcancel := context.WithTimeout(context.Background(), 2*time.Second)
+	//defer pingcancel()
 
-	err = client.Ping(ctx, readpref.Primary())
-	if err != nil {
-		return nil, errors.Errorf("failed to ping mongo: %v", err)
-	}
+	//err = client.Ping(ctx, readpref.Primary())
+	//if err != nil {
+	//	return nil, errors.Errorf("failed to ping mongo: %v", err)
+	//}
 
 	return client, nil
 }
