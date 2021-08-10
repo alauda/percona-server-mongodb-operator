@@ -41,6 +41,9 @@ func Service(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec) *corev1.Serv
 			Name:        m.Name + "-" + replset.Name,
 			Namespace:   m.Namespace,
 			Annotations: replset.Expose.ServiceAnnotations,
+			Labels: map[string]string{
+				"app.kubernetes.io/component": "mongod",
+			},
 		},
 		Spec: corev1.ServiceSpec{
 			Ports: []corev1.ServicePort{
