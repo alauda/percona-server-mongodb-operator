@@ -4,7 +4,7 @@ metadata:
   name: my-cluster-name
 spec:
   image: >-
-    build-harbor.alauda.cn/middleware/percona-server-mongodb:mongo-acp-main-4.2.2106031545
+    build-harbor.alauda.cn/middleware/percona-server-mongodb:v4.2.11-mongodb
   imagePullPolicy: IfNotPresent
   allowUnsafeConfigurations: false
   psmdbLogPath: ''
@@ -12,7 +12,7 @@ spec:
     users: my-cluster-name-secrets
   mongodbExporter:
     enabled: true
-    image: build-harbor.alauda.cn/middleware/mongodb-exporter:acp-main-v0.20.1.2106021349
+    image: build-harbor.alauda.cn/middleware/mongodb-exporter:v0.20.1-mongodb-exporter
     resources:
       requests:
         memory: 200Mi
@@ -88,7 +88,7 @@ spec:
     enabled: true
     restartOnFailure: true
     image: >-
-      build-harbor.alauda.cn/middleware/percona-backup-mongodb:acp-main-v1.3.4.2106021343
+      build-harbor.alauda.cn/middleware/percona-backup-mongodb:v1.3.4-mongodb-backup
     podSecurityContext:
       fsGroup: 1001
     serviceAccountName: percona-server-mongodb-operator

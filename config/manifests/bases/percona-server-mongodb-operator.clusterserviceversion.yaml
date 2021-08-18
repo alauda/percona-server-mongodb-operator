@@ -331,14 +331,14 @@ spec:
   version: 0.0.0
   relatedImages:
     - name: values-yaml-mongo-backup
-      image: build-harbor.alauda.cn/middleware/percona-backup-mongodb:acp-main-v1.3.4.2106021343
+      image: build-harbor.alauda.cn/middleware/percona-backup-mongodb:v1.3.4-mongodb-backup
       support_arm: true
     - name: values-yaml-mongo-exporter
-      image: build-harbor.alauda.cn/middleware/mongodb-exporter:acp-main-v0.20.1.2106021349
+      image: build-harbor.alauda.cn/middleware/mongodb-exporter:v0.20.1-mongodb-exporter
       support_arm: true
     - name: values-yaml-mongo-operator
       image: build-harbor.alauda.cn/middleware/percona-server-mongodb-operator:v3.6-12-g16d79a63
       support_arm: true
     - name: values-yaml-mongo-server
-      image: build-harbor.alauda.cn/middleware/percona-server-mongodb:mongo-acp-main-4.2.2106031545
+      image: build-harbor.alauda.cn/middleware/percona-server-mongodb:v4.2.11-mongodb
       support_arm: true
