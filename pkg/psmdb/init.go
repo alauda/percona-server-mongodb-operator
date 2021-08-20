@@ -5,6 +5,8 @@ import (
 )
 
 func EntrypointInitContainer(initImageName string, pullPolicy corev1.PullPolicy) corev1.Container {
+	// Use root for init-container to bypass ceph pv's permission limit
+	var root int64 = 0
 	return corev1.Container{
 		VolumeMounts: []corev1.VolumeMount{
 			{
@@ -16,5 +18,8 @@ func EntrypointInitContainer(initImageName string, pullPolicy corev1.PullPolicy)
 		Name:            "mongo-init",
 		Command:         []string{"/init-entrypoint.sh"},
 		ImagePullPolicy: pullPolicy,
+		SecurityContext: &corev1.SecurityContext{
+			RunAsUser: &root,
+		},
 	}
 }
