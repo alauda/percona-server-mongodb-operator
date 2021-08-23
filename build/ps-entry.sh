@@ -11,7 +11,8 @@ originalArgOne="$1"
 # all mongo* commands should be dropped to the correct user
 if [[ "$originalArgOne" == mongo* ]] && [ "$(id -u)" = '0' ]; then
 	if [ "$originalArgOne" = 'mongod' ]; then
-		find /data/configdb /data/db \! -user mongodb -exec chown mongodb '{}' +
+		find /data/configdb \! -user mongodb -exec chown mongodb '{}' + || true
+		find /data/db \! -user mongodb -exec chown mongodb '{}' +
 	fi
 
 	# make sure we can write to stdout and stderr as "mongodb"
@@ -367,7 +368,9 @@ if [ "$originalArgOne" = 'mongod' ]; then
 		echo 'MongoDB init process complete; ready for start up.'
 		echo
 	fi
+fi
 
+if [[ "$originalArgOne" == mongo* ]]; then
 	mongodHackedArgs=("$@")
 	MONGO_SSL_DIR=${MONGO_SSL_DIR:-/etc/mongodb-ssl}
 	CA=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
@@ -395,7 +398,8 @@ if [ "$originalArgOne" = 'mongod' ]; then
 
 	MONGODB_VERSION=$(mongod --version  | head -1 | awk '{print $3}' | awk -F'.' '{print $1"."$2}')
 
-	if [ "$MONGODB_VERSION" == "v4.2" ]; then
+
+	if [ "$MONGODB_VERSION" == 'v4.2' ] || [ "$MONGODB_VERSION" == 'v4.4' ]; then
 		_mongod_hack_rename_arg_save_val --sslMode --tlsMode "${mongodHackedArgs[@]}"
 
 		if _mongod_hack_have_arg '--tlsMode' "${mongodHackedArgs[@]}"; then

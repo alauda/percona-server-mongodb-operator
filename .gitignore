@@ -54,6 +54,9 @@ flycheck_*.el
 .projectile
 projectile-bookmarks.eld
 
+#editorconfig file
+.editorconfig
+
 # directory configuration
 .dir-locals.el
 
@@ -110,6 +113,7 @@ tags
 
 # ignore build binary
 percona-server-mongodb-operator
+mongodb-healthcheck
 
 !cmd/percona-server-mongodb-operator
 

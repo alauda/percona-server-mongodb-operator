@@ -1,11 +1,18 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
+  annotations: {}
   generation: 1
+  labels:
+    app.kubernetes.io/component: mongod
+    app.kubernetes.io/instance: one-pod
+    app.kubernetes.io/managed-by: percona-server-mongodb-operator
+    app.kubernetes.io/name: percona-server-mongodb
+    app.kubernetes.io/part-of: percona-server-mongodb
+    app.kubernetes.io/replset: rs0
   name: one-pod-rs0
   ownerReferences:
-    - apiVersion: psmdb.percona.com/v1
-      controller: true
+    - controller: true
       kind: PerconaServerMongoDB
       name: one-pod
 spec:
@@ -37,6 +44,7 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             - labelSelector:
                 matchLabels:
+                  app.kubernetes.io/component: mongod
                   app.kubernetes.io/instance: one-pod
                   app.kubernetes.io/managed-by: percona-server-mongodb-operator
                   app.kubernetes.io/name: percona-server-mongodb
@@ -68,6 +76,7 @@ spec:
             - wiredTigerConcurrentReadTransactions=128
             - --setParameter
             - wiredTigerConcurrentWriteTransactions=128
+            - --config=/etc/mongodb-config/mongod.conf
           command:
             - /data/db/ps-entry.sh
           env:
@@ -85,9 +94,15 @@ spec:
           livenessProbe:
             exec:
               command:
-                - mongodb-healthcheck
+                - /data/db/mongodb-healthcheck
                 - k8s
                 - liveness
+                - --ssl
+                - --sslInsecure
+                - --sslCAFile
+                - /etc/mongodb-ssl/ca.crt
+                - --sslPEMKeyFile
+                - /tmp/tls.pem
                 - --startupDelaySeconds
                 - "7200"
             failureThreshold: 4
@@ -131,6 +146,10 @@ spec:
             - mountPath: /etc/mongodb-ssl-internal
               name: ssl-internal
               readOnly: true
+            - mountPath: /etc/mongodb-config
+              name: config
+            - mountPath: /etc/users-secret
+              name: users-secret-file
           workingDir: /data/db
         - env:
             - name: PBM_AGENT_MONGODB_USERNAME
@@ -177,6 +196,8 @@ spec:
       restartPolicy: Always
       schedulerName: default-scheduler
       securityContext: {}
+      serviceAccount: default
+      serviceAccountName: default
       terminationGracePeriodSeconds: 30
       volumes:
         - name: one-pod-mongodb-keyfile
@@ -184,6 +205,11 @@ spec:
             defaultMode: 288
             optional: false
             secretName: one-pod-mongodb-keyfile
+        - configMap:
+            defaultMode: 420
+            name: one-pod-rs0-mongod
+            optional: true
+          name: config
         - name: ssl
           secret:
             defaultMode: 288
@@ -194,6 +220,10 @@ spec:
             defaultMode: 288
             optional: true
             secretName: one-pod-ssl-internal
+        - name: users-secret-file
+          secret:
+            defaultMode: 420
+            secretName: internal-one-pod-users
   updateStrategy:
     rollingUpdate:
       partition: 0

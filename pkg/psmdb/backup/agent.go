@@ -18,11 +18,9 @@ func AgentContainer(cr *api.PerconaServerMongoDB, replsetName string, replsetSiz
 	}
 
 	fvar := false
-	usersSecretName := cr.Spec.Secrets.Users
-	if cr.CompareVersion("1.5.0") >= 0 {
-		usersSecretName = "internal-" + cr.Name + "-users"
-	}
-	return corev1.Container{
+	usersSecretName := api.UserSecretName(cr)
+
+	c := corev1.Container{
 		Name:            agentContainerName,
 		Image:           cr.Spec.Backup.Image,
 		ImagePullPolicy: corev1.PullIfNotPresent,
@@ -62,5 +60,11 @@ func AgentContainer(cr *api.PerconaServerMongoDB, replsetName string, replsetSiz
 		},
 		SecurityContext: cr.Spec.Backup.ContainerSecurityContext,
 		Resources:       res,
-	}, nil
+	}
+
+	if cr.Spec.Sharding.Enabled {
+		c.Env = append(c.Env, corev1.EnvVar{Name: "SHARDED", Value: "TRUE"})
+	}
+
+	return c, nil
 }

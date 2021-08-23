@@ -7,15 +7,14 @@ import (
 	"strings"
 	"time"
 
+	api "github.com/percona/percona-server-mongodb-operator/pkg/apis/psmdb/v1"
+	"github.com/pkg/errors"
 	corev1 "k8s.io/api/core/v1"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	api "github.com/percona/percona-server-mongodb-operator/pkg/apis/psmdb/v1"
-	"github.com/pkg/errors"
 )
 
 // Service returns a core/v1 API Service
@@ -26,7 +25,11 @@ func Service(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec) *corev1.Serv
 		"app.kubernetes.io/replset":    replset.Name,
 		"app.kubernetes.io/managed-by": "percona-server-mongodb-operator",
 		"app.kubernetes.io/part-of":    "percona-server-mongodb",
-		"app.kubernetes.io/component": "mongod",
+	}
+	if replset.Name == "cfg" {
+		ls["app.kubernetes.io/component"] = "cfg"
+	} else {
+		ls["app.kubernetes.io/component"] = "mongod"
 	}
 
 	return &corev1.Service{
@@ -37,11 +40,10 @@ func Service(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec) *corev1.Serv
 		ObjectMeta: metav1.ObjectMeta{
 			Name:        m.Name + "-" + replset.Name,
 			Namespace:   m.Namespace,
-			Annotations: m.Spec.Mongod.ServiceAnnotations,
+			Annotations: replset.Expose.ServiceAnnotations,
 			Labels: map[string]string{
 				"app.kubernetes.io/component": "mongod",
 			},
-
 		},
 		Spec: corev1.ServiceSpec{
 			Ports: []corev1.ServicePort{
@@ -51,16 +53,15 @@ func Service(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec) *corev1.Serv
 					TargetPort: intstr.FromInt(int(m.Spec.Mongod.Net.Port)),
 				},
 				{
-					Name: "mongod-exporter",
-					Port: 9104,
+					Name:       "mongod-exporter",
+					Port:       9104,
 					TargetPort: intstr.FromInt(int(9104)),
-					Protocol: "TCP",
-
+					Protocol:   "TCP",
 				},
 			},
 			// ClusterIP:                "None",
 			Selector:                 ls,
-			LoadBalancerSourceRanges: m.Spec.Mongod.LoadBalancerSourceRanges,
+			LoadBalancerSourceRanges: replset.Expose.LoadBalancerSourceRanges,
 		},
 	}
 }
@@ -199,11 +200,11 @@ func getIngressPoint(pod corev1.Pod, cl client.Client) (string, error) {
 }
 
 // GetReplsetAddrs returns a slice of replset host:port addresses
-func GetReplsetAddrs(cl client.Client, m *api.PerconaServerMongoDB, replset *api.ReplsetSpec, pods []corev1.Pod) ([]string, error) {
+func GetReplsetAddrs(cl client.Client, m *api.PerconaServerMongoDB, rsName string, rsExposed bool, pods []corev1.Pod) ([]string, error) {
 	addrs := make([]string, 0)
 
 	for _, pod := range pods {
-		host, err := MongoHost(cl, m, replset, pod)
+		host, err := MongoHost(cl, m, rsName, rsExposed, pod)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to get external hostname for pod %s", pod.Name)
 		}
@@ -214,12 +215,12 @@ func GetReplsetAddrs(cl client.Client, m *api.PerconaServerMongoDB, replset *api
 }
 
 // MongoHost returns the mongo host for given pod
-func MongoHost(cl client.Client, m *api.PerconaServerMongoDB, replset *api.ReplsetSpec, pod corev1.Pod) (string, error) {
-	if replset.Expose.Enabled {
+func MongoHost(cl client.Client, m *api.PerconaServerMongoDB, rsName string, rsExposed bool, pod corev1.Pod) (string, error) {
+	if rsExposed {
 		return getExtAddr(cl, m.Namespace, pod)
 	}
 
-	return getAddr(m, pod.Name, replset.Name), nil
+	return GetAddr(m, pod.Name, rsName), nil
 }
 
 func getExtAddr(cl client.Client, namespace string, pod corev1.Pod) (string, error) {
@@ -236,7 +237,8 @@ func getExtAddr(cl client.Client, namespace string, pod corev1.Pod) (string, err
 	return hostname.String(), nil
 }
 
-func getAddr(m *api.PerconaServerMongoDB, pod, replset string) string {
+// GetAddr returns replicaSet pod address in cluster
+func GetAddr(m *api.PerconaServerMongoDB, pod, replset string) string {
 	return strings.Join([]string{pod, m.Name + "-" + replset, m.Namespace, m.Spec.ClusterServiceDNSSuffix}, ".") +
 		":" + strconv.Itoa(int(m.Spec.Mongod.Net.Port))
 }

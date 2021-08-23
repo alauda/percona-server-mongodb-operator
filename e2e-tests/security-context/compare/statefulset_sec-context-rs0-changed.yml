@@ -1,11 +1,18 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
+  annotations: {}
   generation: 2
+  labels:
+    app.kubernetes.io/component: mongod
+    app.kubernetes.io/instance: sec-context
+    app.kubernetes.io/managed-by: percona-server-mongodb-operator
+    app.kubernetes.io/name: percona-server-mongodb
+    app.kubernetes.io/part-of: percona-server-mongodb
+    app.kubernetes.io/replset: rs0
   name: sec-context-rs0
   ownerReferences:
-    - apiVersion: psmdb.percona.com/v1
-      controller: true
+    - controller: true
       kind: PerconaServerMongoDB
       name: sec-context
 spec:
@@ -23,7 +30,8 @@ spec:
   serviceName: sec-context-rs0
   template:
     metadata:
-      annotations: {}
+      annotations:
+        openshift.io/scc: privileged
       labels:
         app.kubernetes.io/component: mongod
         app.kubernetes.io/instance: sec-context
@@ -76,9 +84,15 @@ spec:
           livenessProbe:
             exec:
               command:
-                - mongodb-healthcheck
+                - /data/db/mongodb-healthcheck
                 - k8s
                 - liveness
+                - --ssl
+                - --sslInsecure
+                - --sslCAFile
+                - /etc/mongodb-ssl/ca.crt
+                - --sslPEMKeyFile
+                - /tmp/tls.pem
                 - --startupDelaySeconds
                 - "7200"
             failureThreshold: 4
@@ -125,6 +139,8 @@ spec:
             - mountPath: /etc/mongodb-encryption
               name: sec-context-mongodb-encryption-key
               readOnly: true
+            - mountPath: /etc/users-secret
+              name: users-secret-file
           workingDir: /data/db
         - env:
             - name: PBM_AGENT_MONGODB_USERNAME
@@ -177,6 +193,8 @@ spec:
         supplementalGroups:
           - 1001
           - 1003
+      serviceAccount: percona-server-mongodb-operator-workload
+      serviceAccountName: percona-server-mongodb-operator-workload
       terminationGracePeriodSeconds: 30
       volumes:
         - name: sec-context-mongodb-keyfile
@@ -199,6 +217,10 @@ spec:
             defaultMode: 288
             optional: true
             secretName: sec-context-ssl-internal
+        - name: users-secret-file
+          secret:
+            defaultMode: 420
+            secretName: internal-sec-context-users
   updateStrategy:
     rollingUpdate:
       partition: 0

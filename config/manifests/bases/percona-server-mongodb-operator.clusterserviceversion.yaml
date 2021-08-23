@@ -9,7 +9,7 @@ metadata:
     name.operator: percona-server-mongodb-operator
   annotations:
     alm-examples: '[]'
-    olm.skipRange: ">=1.5.0 <3.6.0"
+    olm.skipRange: ">=1.5.0 <CURRENT-VERSION"
     capabilities: 'Deep Insights'
     categories: 'Database'
     certified: 'true'
@@ -37,7 +37,7 @@ metadata:
               "moduleName":"percona-server-mongodb",
               "upgradeFrom":[
                   {
-                      "versionMatch":">=1.5.0 <3.6.0",
+                      "versionMatch":">=1.5.0 <CURRENT-VERSION",
                       "riskLevel":"Low",
                       "description":"用于问题修复的小版本更新",
                       "instanceConstraints":[
@@ -163,7 +163,7 @@ spec:
               - 'urn:alm:descriptor:description:en:Sets PSMDB encryption cipher mode'
               - 'urn:alm:descriptor:description:zh:加密方式，只支持AES256-CBC、AES256-GCM两种模式'
         statusDescriptors: []
-        version: v1-5-0
+        version: v1-9-0
       - description: Percona Server for MongoDB 备份实例
         displayName: MongoDBBackup
         kind: PerconaServerMongoDBBackup
@@ -336,14 +336,14 @@ spec:
   version: 0.0.0
   relatedImages:
     - name: values-yaml-mongo-backup
-      image: build-harbor.alauda.cn/middleware/percona-backup-mongodb:acp-main-v1.3.4.2106021343
+      image: build-harbor.alauda.cn/middleware/percona-backup-mongodb:v1.3.4-mongodb-backup
       support_arm: true
     - name: values-yaml-mongo-exporter
-      image: build-harbor.alauda.cn/middleware/mongodb-exporter:acp-main-v0.20.1.2106021349
+      image: build-harbor.alauda.cn/middleware/mongodb-exporter:v0.20.1-mongodb-exporter
       support_arm: true
     - name: values-yaml-mongo-operator
       image: build-harbor.alauda.cn/middleware/percona-server-mongodb-operator:v3.6-14-gcbf1b60d
       support_arm: true
     - name: values-yaml-mongo-server
-      image: build-harbor.alauda.cn/middleware/percona-server-mongodb:mongo-acp-main-4.2.2106031545
+      image: build-harbor.alauda.cn/middleware/percona-server-mongodb:v4.2.11-mongodb
       support_arm: true

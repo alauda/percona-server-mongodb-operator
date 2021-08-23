@@ -3,8 +3,8 @@ kind: PerconaServerMongoDB
 metadata:
   name: one-pod
 spec:
-  platform: kubernetes
-  image: perconalab/percona-server-mongodb-operator:master-mongod4.0
+  #platform: openshift
+  image:
   imagePullPolicy: Always
   allowUnsafeConfigurations: true
   secrets:
@@ -16,6 +16,11 @@ spec:
   replsets:
   - name: rs0
     size: 1
+    configuration: |
+      operationProfiling:
+        mode: slowOp
+      systemLog:
+        verbosity: 1
     affinity:
       antiAffinityTopologyKey: "kubernetes.io/hostname"
     podDisruptionBudget:
@@ -76,7 +81,7 @@ spec:
     enabled: true
     debug: true
     restartOnFailure: true
-    image: perconalab/percona-server-mongodb-operator:master-backup
+    image: perconalab/percona-server-mongodb-operator:9.9.9-backup
     storages:
      minio:
        type: s3

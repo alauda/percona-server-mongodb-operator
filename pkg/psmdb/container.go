@@ -10,7 +10,8 @@ import (
 	api "github.com/percona/percona-server-mongodb-operator/pkg/apis/psmdb/v1"
 )
 
-func container(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec, name string, resources corev1.ResourceRequirements, ikeyName string) (corev1.Container, error) {
+func container(cr *api.PerconaServerMongoDB, replset *api.ReplsetSpec, name string, resources corev1.ResourceRequirements,
+	ikeyName string, useConfigFile bool) (corev1.Container, error) {
 	fvar := false
 
 	volumes := []corev1.VolumeMount{
@@ -35,40 +36,52 @@ func container(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec, name strin
 		},
 	}
 
-	if *m.Spec.Mongod.Security.EnableEncryption {
+	if useConfigFile {
+		volumes = append(volumes, corev1.VolumeMount{
+			Name:      "config",
+			MountPath: mongodConfigDir,
+		})
+	}
+
+	if *cr.Spec.Mongod.Security.EnableEncryption {
 		volumes = append(volumes,
 			corev1.VolumeMount{
-				Name:      m.Spec.Mongod.Security.EncryptionKeySecret,
+				Name:      cr.Spec.Mongod.Security.EncryptionKeySecret,
 				MountPath: mongodRESTencryptDir,
 				ReadOnly:  true,
 			},
 		)
 	}
-
+	if cr.CompareVersion("1.8.0") >= 0 {
+		volumes = append(volumes, corev1.VolumeMount{
+			Name:      "users-secret-file",
+			MountPath: "/etc/users-secret",
+		})
+	}
 	container := corev1.Container{
 		Name:            name,
-		Image:           m.Spec.Image,
-		ImagePullPolicy: m.Spec.ImagePullPolicy,
-		Args:            containerArgs(m, replset, resources),
+		Image:           cr.Spec.Image,
+		ImagePullPolicy: cr.Spec.ImagePullPolicy,
+		Args:            containerArgs(cr, replset, resources, useConfigFile),
 		Ports: []corev1.ContainerPort{
 			{
 				Name:          mongodPortName,
-				HostPort:      m.Spec.Mongod.Net.HostPort,
-				ContainerPort: m.Spec.Mongod.Net.Port,
+				HostPort:      cr.Spec.Mongod.Net.HostPort,
+				ContainerPort: cr.Spec.Mongod.Net.Port,
 			},
 		},
 		Env: []corev1.EnvVar{
 			{
 				Name:  "SERVICE_NAME",
-				Value: m.Name,
+				Value: cr.Name,
 			},
 			{
 				Name:  "NAMESPACE",
-				Value: m.Namespace,
+				Value: cr.Namespace,
 			},
 			{
 				Name:  "MONGODB_PORT",
-				Value: strconv.Itoa(int(m.Spec.Mongod.Net.Port)),
+				Value: strconv.Itoa(int(cr.Spec.Mongod.Net.Port)),
 			},
 			{
 				Name:  "MONGODB_REPLSET",
@@ -76,14 +89,14 @@ func container(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec, name strin
 			},
 			{
 				Name:  "__FILE_LOG_PATH__",
-				Value: m.Spec.PsmdbLogPath,
+				Value: cr.Spec.PsmdbLogPath,
 			},
 		},
 		EnvFrom: []corev1.EnvFromSource{
 			{
 				SecretRef: &corev1.SecretEnvSource{
 					LocalObjectReference: corev1.LocalObjectReference{
-						Name: m.Spec.Secrets.Users,
+						Name: cr.Spec.Secrets.Users,
 					},
 					Optional: &fvar,
 				},
@@ -97,12 +110,12 @@ func container(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec, name strin
 		VolumeMounts:    volumes,
 	}
 
-	if m.CompareVersion("1.5.0") >= 0 {
+	if cr.CompareVersion("1.5.0") >= 0 {
 		container.EnvFrom = []corev1.EnvFromSource{
 			{
 				SecretRef: &corev1.SecretEnvSource{
 					LocalObjectReference: corev1.LocalObjectReference{
-						Name: "internal-" + m.Name + "-users",
+						Name: api.InternalUserSecretName(cr),
 					},
 					Optional: &fvar,
 				},
@@ -115,7 +128,8 @@ func container(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec, name strin
 }
 
 // containerArgs returns the args to pass to the mSpec container
-func containerArgs(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec, resources corev1.ResourceRequirements) []string {
+func containerArgs(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec, resources corev1.ResourceRequirements,
+	useConfigFile bool) []string {
 	mSpec := m.Spec.Mongod
 	// TODO(andrew): in the safe mode `sslAllowInvalidCertificates` should be set only with the external services
 	args := []string{
@@ -124,7 +138,7 @@ func containerArgs(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec, resour
 		"--dbpath=" + MongodContainerDataDir,
 		"--port=" + strconv.Itoa(int(mSpec.Net.Port)),
 		"--replSet=" + replset.Name,
-		"--storageEngine=" + string(mSpec.Storage.Engine),
+		"--storageEngine=" + string(replset.Storage.Engine),
 		"--relaxPermChecks",
 		"--sslAllowInvalidCertificates",
 	}
@@ -167,8 +181,8 @@ func containerArgs(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec, resour
 	}
 
 	// storage
-	if mSpec.Storage != nil {
-		switch mSpec.Storage.Engine {
+	if replset.Storage != nil {
+		switch replset.Storage.Engine {
 		case api.StorageEngineWiredTiger:
 			if *m.Spec.Mongod.Security.EnableEncryption {
 				args = append(args,
@@ -184,47 +198,40 @@ func containerArgs(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec, resour
 			if limit, ok := resources.Limits[corev1.ResourceCPU]; ok && !limit.IsZero() {
 				args = append(args, fmt.Sprintf(
 					"--wiredTigerCacheSizeGB=%.2f",
-					getWiredTigerCacheSizeGB(resources.Limits, mSpec.Storage.WiredTiger.EngineConfig.CacheSizeRatio, true),
+					getWiredTigerCacheSizeGB(resources.Limits, replset.Storage.WiredTiger.EngineConfig.CacheSizeRatio, true),
 				))
 			}
-			if mSpec.Storage.WiredTiger.CollectionConfig != nil {
-				if mSpec.Storage.WiredTiger.CollectionConfig.BlockCompressor != nil {
+			if replset.Storage.WiredTiger.CollectionConfig != nil {
+				if replset.Storage.WiredTiger.CollectionConfig.BlockCompressor != nil {
 					args = append(args,
-						"--wiredTigerCollectionBlockCompressor="+string(*mSpec.Storage.WiredTiger.CollectionConfig.BlockCompressor),
+						"--wiredTigerCollectionBlockCompressor="+string(*replset.Storage.WiredTiger.CollectionConfig.BlockCompressor),
 					)
 				}
 			}
-			if mSpec.Storage.WiredTiger.EngineConfig != nil {
-				if mSpec.Storage.WiredTiger.EngineConfig.JournalCompressor != nil {
+			if replset.Storage.WiredTiger.EngineConfig != nil {
+				if replset.Storage.WiredTiger.EngineConfig.JournalCompressor != nil {
 					args = append(args,
-						"--wiredTigerJournalCompressor="+string(*mSpec.Storage.WiredTiger.EngineConfig.JournalCompressor),
+						"--wiredTigerJournalCompressor="+string(*replset.Storage.WiredTiger.EngineConfig.JournalCompressor),
 					)
 				}
-				if mSpec.Storage.WiredTiger.EngineConfig.DirectoryForIndexes {
+				if replset.Storage.WiredTiger.EngineConfig.DirectoryForIndexes {
 					args = append(args, "--wiredTigerDirectoryForIndexes")
 				}
 			}
-			if mSpec.Storage.WiredTiger.IndexConfig != nil && mSpec.Storage.WiredTiger.IndexConfig.PrefixCompression {
+			if replset.Storage.WiredTiger.IndexConfig != nil && replset.Storage.WiredTiger.IndexConfig.PrefixCompression {
 				args = append(args, "--wiredTigerIndexPrefixCompression=true")
 			}
 		case api.StorageEngineInMemory:
 			args = append(args, fmt.Sprintf(
 				"--inMemorySizeGB=%.2f",
-				getWiredTigerCacheSizeGB(resources.Limits, mSpec.Storage.InMemory.EngineConfig.InMemorySizeRatio, false),
+				getWiredTigerCacheSizeGB(resources.Limits, replset.Storage.InMemory.EngineConfig.InMemorySizeRatio, false),
 			))
-		case api.StorageEngineMMAPv1:
-			if mSpec.Storage.MMAPv1.NsSize > 0 {
-				args = append(args, "--nssize="+strconv.Itoa(mSpec.Storage.MMAPv1.NsSize))
-			}
-			if mSpec.Storage.MMAPv1.Smallfiles {
-				args = append(args, "--smallfiles")
-			}
 		}
-		if mSpec.Storage.DirectoryPerDB {
+		if replset.Storage.DirectoryPerDB {
 			args = append(args, "--directoryperdb")
 		}
-		if mSpec.Storage.SyncPeriodSecs > 0 {
-			args = append(args, "--syncdelay="+strconv.Itoa(mSpec.Storage.SyncPeriodSecs))
+		if replset.Storage.SyncPeriodSecs > 0 {
+			args = append(args, "--syncdelay="+strconv.Itoa(replset.Storage.SyncPeriodSecs))
 		}
 	}
 
@@ -282,6 +289,10 @@ func containerArgs(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec, resour
 		default:
 			args = append(args, "--auditPath="+MongodContainerDataDir+"/auditLog.json")
 		}
+	}
+
+	if useConfigFile {
+		args = append(args, fmt.Sprintf("--config=%s/mongod.conf", mongodConfigDir))
 	}
 
 	return args

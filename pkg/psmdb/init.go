@@ -4,7 +4,9 @@ import (
 	corev1 "k8s.io/api/core/v1"
 )
 
-func EntrypointInitContainer(initImageName string) corev1.Container {
+func EntrypointInitContainer(initImageName string, pullPolicy corev1.PullPolicy) corev1.Container {
+	// Use root for init-container to bypass ceph pv's permission limit
+	var root int64 = 0
 	return corev1.Container{
 		VolumeMounts: []corev1.VolumeMount{
 			{
@@ -15,6 +17,9 @@ func EntrypointInitContainer(initImageName string) corev1.Container {
 		Image:           initImageName,
 		Name:            "mongo-init",
 		Command:         []string{"/init-entrypoint.sh"},
-		ImagePullPolicy: corev1.PullIfNotPresent,
+		ImagePullPolicy: pullPolicy,
+		SecurityContext: &corev1.SecurityContext{
+			RunAsUser: &root,
+		},
 	}
 }

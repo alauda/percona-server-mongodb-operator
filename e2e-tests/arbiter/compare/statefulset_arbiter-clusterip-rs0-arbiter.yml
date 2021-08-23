@@ -1,11 +1,18 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
+  annotations: {}
   generation: 1
+  labels:
+    app.kubernetes.io/component: arbiter
+    app.kubernetes.io/instance: arbiter-clusterip
+    app.kubernetes.io/managed-by: percona-server-mongodb-operator
+    app.kubernetes.io/name: percona-server-mongodb
+    app.kubernetes.io/part-of: percona-server-mongodb
+    app.kubernetes.io/replset: rs0
   name: arbiter-clusterip-rs0-arbiter
   ownerReferences:
-  - apiVersion: psmdb.percona.com/v1
-    controller: true
+  - controller: true
     kind: PerconaServerMongoDB
     name: arbiter-clusterip
 spec:
@@ -121,6 +128,8 @@ spec:
         - mountPath: /etc/mongodb-encryption
           name: arbiter-clusterip-mongodb-encryption-key
           readOnly: true
+        - mountPath: /etc/users-secret
+          name: users-secret-file
         workingDir: /data/db
       dnsPolicy: ClusterFirst
       initContainers:
@@ -138,6 +147,8 @@ spec:
       schedulerName: default-scheduler
       securityContext:
         fsGroup: 1001
+      serviceAccount: default
+      serviceAccountName: default
       terminationGracePeriodSeconds: 30
       volumes:
       - name: arbiter-clusterip-mongodb-keyfile
@@ -160,6 +171,10 @@ spec:
           defaultMode: 288
           optional: true
           secretName: arbiter-clusterip-ssl-internal
+      - name: users-secret-file
+        secret:
+          defaultMode: 420
+          secretName: internal-arbiter-users
       - emptyDir: {}
         name: mongod-data
   updateStrategy:

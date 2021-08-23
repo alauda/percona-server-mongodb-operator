@@ -20,7 +20,7 @@ global:
       # repository: image repository for the image
       repository: middleware/percona-server-mongodb
       # tag: a tag for the component
-      tag: mongo-acp-main-4.2.2106031545
+      tag: v4.2.11-mongodb
       # thirdparty: if true, the image tag is not updated
       thirdparty: true
       # code: code repository address
@@ -31,7 +31,7 @@ global:
       # repository: image repository for the image
       repository: middleware/mongodb-exporter
       # tag: a tag for the component
-      tag: acp-main-v0.20.1.2106021349
+      tag: v0.20.1-mongodb-exporter
       # thirdparty: if true, the image tag is not updated
       thirdparty: true
       # code: code repository address
@@ -42,7 +42,7 @@ global:
       # repository: image repository for the image
       repository: middleware/percona-backup-mongodb
       # tag: a tag for the component
-      tag: acp-main-v1.3.4.2106021343
+      tag: v1.3.4-mongodb-backup
       # thirdparty: if true, the image tag is not updated
       thirdparty: true
       # code: code repository address

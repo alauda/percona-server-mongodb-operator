@@ -1,11 +1,18 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
+  annotations: {}
   generation: 1
+  labels:
+    app.kubernetes.io/component: mongod
+    app.kubernetes.io/instance: no-requests
+    app.kubernetes.io/managed-by: percona-server-mongodb-operator
+    app.kubernetes.io/name: percona-server-mongodb
+    app.kubernetes.io/part-of: percona-server-mongodb
+    app.kubernetes.io/replset: rs0
   name: no-requests-rs0
   ownerReferences:
-    - apiVersion: psmdb.percona.com/v1
-      controller: true
+    - controller: true
       kind: PerconaServerMongoDB
       name: no-requests
 spec:
@@ -37,6 +44,7 @@ spec:
           requiredDuringSchedulingIgnoredDuringExecution:
             - labelSelector:
                 matchLabels:
+                  app.kubernetes.io/component: mongod
                   app.kubernetes.io/instance: no-requests
                   app.kubernetes.io/managed-by: percona-server-mongodb-operator
                   app.kubernetes.io/name: percona-server-mongodb
@@ -87,9 +95,15 @@ spec:
           livenessProbe:
             exec:
               command:
-                - mongodb-healthcheck
+                - /data/db/mongodb-healthcheck
                 - k8s
                 - liveness
+                - --ssl
+                - --sslInsecure
+                - --sslCAFile
+                - /etc/mongodb-ssl/ca.crt
+                - --sslPEMKeyFile
+                - /tmp/tls.pem
                 - --startupDelaySeconds
                 - "7200"
             failureThreshold: 4
@@ -133,6 +147,8 @@ spec:
             - mountPath: /etc/mongodb-encryption
               name: no-requests-mongodb-encryption-key
               readOnly: true
+            - mountPath: /etc/users-secret
+              name: users-secret-file
           workingDir: /data/db
       dnsPolicy: ClusterFirst
       initContainers:
@@ -152,6 +168,8 @@ spec:
       restartPolicy: Always
       schedulerName: default-scheduler
       securityContext: {}
+      serviceAccount: default
+      serviceAccountName: default
       terminationGracePeriodSeconds: 30
       volumes:
         - name: no-requests-mongodb-keyfile
@@ -174,6 +192,10 @@ spec:
             defaultMode: 288
             optional: true
             secretName: no-requests-ssl-internal
+        - name: users-secret-file
+          secret:
+            defaultMode: 420
+            secretName: internal-no-requests-users
   updateStrategy:
     rollingUpdate:
       partition: 0
