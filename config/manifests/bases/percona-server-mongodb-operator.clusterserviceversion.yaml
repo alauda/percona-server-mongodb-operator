@@ -77,7 +77,7 @@ spec:
             x-descriptors:
               - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:副本集设置'
               - 'urn:alm:descriptor:com.tectonic.ui:text'
-              - 'urn:alm:descriptor:label:en:Name'
+              - 'urn:alm:descriptor:label:en:MongoDB Cluster Name'
               - 'urn:alm:descriptor:description:en:The name of the MongoDB replica set'
               - 'urn:alm:descriptor:description:zh:MongoDB集群名称'
           - path: replsets[0].size
@@ -85,7 +85,7 @@ spec:
             x-descriptors:
               - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:副本集设置'
               - 'urn:alm:descriptor:com.tectonic.ui:number'
-              - 'urn:alm:descriptor:label:en:Size'
+              - 'urn:alm:descriptor:label:en:Replica Size'
               - 'urn:alm:descriptor:com.tectonic.default:3'
               - 'urn:alm:descriptor:description:en:The size of the MongoDB Replica Set, must be >= 3 for High-Availability'
               - 'urn:alm:descriptor:description:zh:MongoDB集群数，默认为3，高可用时必须大于等于3'
@@ -102,7 +102,7 @@ spec:
             x-descriptors:
               - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:副本集设置'
               - 'urn:alm:descriptor:com.tectonic.ui:text'
-              - 'urn:alm:descriptor:label:en:antiAffinity Topology Key'
+              - 'urn:alm:descriptor:label:en:Anti-Affinity Topology Key'
               - 'urn:alm:descriptor:description:en:The Kubernetes topologyKey node affinity constraint for the Replica Set nodes'
               - 'urn:alm:descriptor:description:zh:副本节点的反亲和性约束'
           - path: replsets[0].volumeSpec.persistentVolumeClaim.storageClassName
@@ -110,7 +110,7 @@ spec:
             x-descriptors:
               - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:副本集设置'
               - 'urn:alm:descriptor:com.tectonic.ui:text'
-              - 'urn:alm:descriptor:label:en:Name'
+              - 'urn:alm:descriptor:label:en:StorageClass Name'
               - 'urn:alm:descriptor:description:en:The Kubernetes Storage Class to use with the MongoDB container Persistent Volume Claim. Use Storage Class with XFS as the default filesystem if possible, for better MongoDB performance'
               - 'urn:alm:descriptor:description:zh:支持S3的持久存储名'
           - path: replsets[0].volumeSpec.persistentVolumeClaim.resources.requests.storage
@@ -118,23 +118,23 @@ spec:
             x-descriptors:
               - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:副本集设置'
               - 'urn:alm:descriptor:com.tectonic.ui:text'
-              - 'urn:alm:descriptor:label:en:Size'
+              - 'urn:alm:descriptor:label:en:Storage Capacity'
               - 'urn:alm:descriptor:description:en:The Kubernetes Persistent Volume size for the MongoDB container'
               - 'urn:alm:descriptor:description:zh:存储容量'
           - path: secrets.users
-            displayName: Mongo账户
+            displayName: Mongo账户的保密字典
             x-descriptors:
               - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:访问设置'
               - 'urn:alm:descriptor:com.tectonic.ui:text'
-              - 'urn:alm:descriptor:label:en:Secret User'
+              - 'urn:alm:descriptor:label:en:Secret Name for Account'
               - 'urn:alm:descriptor:description:en:The secret name for the MongoDB users required to run the operator. This secret is required to run the operator.'
               - 'urn:alm:descriptor:description:zh:保密字典类型的MongoDB的访问用户名'
           - path: secrets.key
-            displayName: Mongo访问键值
+            displayName: Mongo访问证书的保密字典
             x-descriptors:
               - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:访问设置'
               - 'urn:alm:descriptor:com.tectonic.ui:text'
-              - 'urn:alm:descriptor:label:en:Secret Key'
+              - 'urn:alm:descriptor:label:en:Secret Name for Certification'
               - 'urn:alm:descriptor:description:en:The secret name for the MongoDB Internal Auth Key. This secret is auto-created by the operator if it doesn’t exist.'
               - 'urn:alm:descriptor:description:zh:保密字典类型的MongDB访问密码，可以为空，如果为空，则会自动生成'
           - path: mongodbExporter.enabled
@@ -142,7 +142,7 @@ spec:
             x-descriptors:
               - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:监控设置'
               - 'urn:alm:descriptor:com.tectonic.ui:booleanSwitch'
-              - 'urn:alm:descriptor:label:en:Enable Exporter'
+              - 'urn:alm:descriptor:label:en:Monitor Switch'
               - 'urn:alm:descriptor:description:en:Enable or disbale mongodbExporter'
               - 'urn:alm:descriptor:description:zh:是否开启监控'
           - path: mongod.security.enableEncryption
@@ -150,7 +150,7 @@ spec:
             x-descriptors:
               - 'urn:alm:descriptor:com.tectonic.ui:advanced'
               - 'urn:alm:descriptor:com.tectonic.ui:booleanSwitch'
-              - 'urn:alm:descriptor:label:en:Enable Encryption'
+              - 'urn:alm:descriptor:label:en:Encryption Switch'
               - 'urn:alm:descriptor:description:en:Enables/disables PSMDB data at rest encryption'
               - 'urn:alm:descriptor:description:zh:是否开启数据存储加密'
           - path: mongod.security.encryptionKeySecret
@@ -159,7 +159,7 @@ spec:
               - 'urn:alm:descriptor:com.tectonic.ui:advanced'
               - 'urn:alm:descriptor:com.tectonic.ui:fieldDependency:mongod.security.enableEncryption:true'
               - 'urn:alm:descriptor:com.tectonic.ui:text'
-              - 'urn:alm:descriptor:label:en:Encryption Key Secret'
+              - 'urn:alm:descriptor:label:en:Encryption Certification Secret'
               - 'urn:alm:descriptor:description:en:Specifies a secret object with the encryption key'
               - 'urn:alm:descriptor:description:zh:加密密钥'
           - path: mongod.security.encryptionCipherMode
