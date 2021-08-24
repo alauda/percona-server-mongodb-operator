@@ -27,7 +27,7 @@ RUN find vendor -regextype posix-extended -iregex '.*(license|notice)(\.md|\.txt
             sh -c 'mkdir -pv /licenses/$(echo "$0" | sed -E "s/\/(license|notice).*$//gi") \
                    && cp -v "$0" /licenses/$(echo "$0" | sed -E "s/\/(license|notice).*$//gi")' {} \;
 
-FROM alpine:3.12.1
+FROM build-harbor.alauda.cn/ops/alpine:3.14.0
 
 LABEL name="Percona Server for MongoDB Operator" \
       vendor="Percona" \
