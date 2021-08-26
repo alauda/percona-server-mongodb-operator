@@ -76,10 +76,14 @@ spec:
           - {kind: Secret, name: '', version: v1}
           - {kind: ConfigMap, name: '', version: v1}
         specDescriptors:
+          - path: replsets
+            x-descriptors:
+              - 'urn:alm:descriptor:label:en:Replica Setting'
+              - 'urn:alm:descriptor:label:zh:副本集设置'
           - path: replsets[0].name
             displayName: 副本集名称
             x-descriptors:
-              - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:副本集设置'
+              - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:replsets'
               - 'urn:alm:descriptor:com.tectonic.ui:text'
               - 'urn:alm:descriptor:label:en:MongoDB Cluster Name'
               - 'urn:alm:descriptor:description:en:The name of the MongoDB replica set'
@@ -87,7 +91,7 @@ spec:
           - path: replsets[0].size
             displayName: 副本集节点数
             x-descriptors:
-              - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:副本集设置'
+              - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:replsets'
               - 'urn:alm:descriptor:com.tectonic.ui:number'
               - 'urn:alm:descriptor:label:en:Replica Size'
               - 'urn:alm:descriptor:com.tectonic.default:3'
@@ -96,7 +100,7 @@ spec:
           - path: replsets[0].resources
             displayName: 资源用量
             x-descriptors:
-              - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:副本集设置'
+              - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:replsets'
               - 'urn:alm:descriptor:com.tectonic.ui:resourceRequirements'
               - 'urn:alm:descriptor:label:en:Resources'
               - 'urn:alm:descriptor:description:en:Kubernetes CPU,Memory required for MongoDB container'
@@ -104,7 +108,7 @@ spec:
           - path: replsets[0].affinity.antiAffinityTopologyKey
             displayName: 反亲和键
             x-descriptors:
-              - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:副本集设置'
+              - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:replsets'
               - 'urn:alm:descriptor:com.tectonic.ui:text'
               - 'urn:alm:descriptor:label:en:Anti-Affinity Topology Key'
               - 'urn:alm:descriptor:description:en:The Kubernetes topologyKey node affinity constraint for the Replica Set nodes'
@@ -112,7 +116,7 @@ spec:
           - path: replsets[0].volumeSpec.persistentVolumeClaim.storageClassName
             displayName: 存储类名称
             x-descriptors:
-              - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:副本集设置'
+              - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:replsets'
               - 'urn:alm:descriptor:com.tectonic.ui:text'
               - 'urn:alm:descriptor:label:en:StorageClass Name'
               - 'urn:alm:descriptor:description:en:The Kubernetes Storage Class to use with the MongoDB container Persistent Volume Claim. Use Storage Class with XFS as the default filesystem if possible, for better MongoDB performance'
@@ -120,15 +124,19 @@ spec:
           - path: replsets[0].volumeSpec.persistentVolumeClaim.resources.requests.storage
             displayName: 存储容量
             x-descriptors:
-              - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:副本集设置'
+              - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:replsets'
               - 'urn:alm:descriptor:com.tectonic.ui:text'
               - 'urn:alm:descriptor:label:en:Storage Capacity'
               - 'urn:alm:descriptor:description:en:The Kubernetes Persistent Volume size for the MongoDB container'
               - 'urn:alm:descriptor:description:zh:存储容量'
+          - path: secrets
+            x-descriptors:
+              - 'urn:alm:descriptor:label:en:Access Setting'
+              - 'urn:alm:descriptor:label:zh:访问设置'
           - path: secrets.users
             displayName: Mongo账户的保密字典
             x-descriptors:
-              - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:访问设置'
+              - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:secrets'
               - 'urn:alm:descriptor:com.tectonic.ui:text'
               - 'urn:alm:descriptor:label:en:Secret Name for Account'
               - 'urn:alm:descriptor:description:en:The secret name for the MongoDB users required to run the operator. This secret is required to run the operator.'
@@ -136,19 +144,40 @@ spec:
           - path: secrets.key
             displayName: Mongo访问证书的保密字典
             x-descriptors:
-              - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:访问设置'
+              - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:secrets'
               - 'urn:alm:descriptor:com.tectonic.ui:text'
               - 'urn:alm:descriptor:label:en:Secret Name for Certification'
               - 'urn:alm:descriptor:description:en:The secret name for the MongoDB Internal Auth Key. This secret is auto-created by the operator if it doesn’t exist.'
               - 'urn:alm:descriptor:description:zh:保密字典类型的MongDB访问密码，可以为空，如果为空，则会自动生成'
+          - path: mongodbExporter
+            x-descriptors:
+              - 'urn:alm:descriptor:label:en:Monitor Setting'
+              - 'urn:alm:descriptor:label:zh:监控设置'
           - path: mongodbExporter.enabled
             displayName: 监控开关
             x-descriptors:
-              - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:监控设置'
+              - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:mongodbExporter'
               - 'urn:alm:descriptor:com.tectonic.ui:booleanSwitch'
               - 'urn:alm:descriptor:label:en:Monitor Switch'
               - 'urn:alm:descriptor:description:en:Enable or disbale mongodbExporter'
               - 'urn:alm:descriptor:description:zh:是否开启监控'
+          - path: backup
+            x-descriptors:
+              - 'urn:alm:descriptor:label:en:Backup Setting'
+              - 'urn:alm:descriptor:label:zh:备份设置'
+          - path: backup.enabled
+            displayName: 备份开关
+            x-descriptors:
+              - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:backup'
+              - 'urn:alm:descriptor:com.tectonic.ui:booleanSwitch'
+              - 'urn:alm:descriptor:label:en:Backup Setting'
+              - 'urn:alm:descriptor:description:en:Enable or disbale backup related features'
+              - 'urn:alm:descriptor:description:zh:是否开启备份相关功能'
+              - 'urn:alm:descriptor:com.tectonic.default:true'
+          - path: advanced
+            x-descriptors:
+              - 'urn:alm:descriptor:label:en:Advanced Setting'
+              - 'urn:alm:descriptor:label:zh:高级设置'
           - path: mongod.security.enableEncryption
             displayName: 加密存储开关
             x-descriptors:
