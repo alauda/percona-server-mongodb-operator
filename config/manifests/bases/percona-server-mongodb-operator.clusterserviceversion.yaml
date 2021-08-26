@@ -170,14 +170,67 @@ spec:
             x-descriptors:
               - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:backup'
               - 'urn:alm:descriptor:com.tectonic.ui:booleanSwitch'
-              - 'urn:alm:descriptor:label:en:Backup Setting'
+              - 'urn:alm:descriptor:label:en:Backup Switch'
               - 'urn:alm:descriptor:description:en:Enable or disbale backup related features'
               - 'urn:alm:descriptor:description:zh:是否开启备份相关功能'
               - 'urn:alm:descriptor:com.tectonic.default:true'
+          - path: backup.storages
+            displayName: 备份目标存储
+            x-descriptors:
+              - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:backup'
+              - 'urn:alm:descriptor:com.tectonic.ui:yaml'
+              - 'urn:alm:descriptor:label:en:Backup Target Storage Definition'
+              - 'urn:alm:descriptor:description:en:Backup target storage device (S3) definition'
+              - 'urn:alm:descriptor:description:zh:备份目标存储设备(S3)定义'
+          - path: backup.tasks
+            x-descriptors:
+              - 'urn:alm:descriptor:label:en:Auto-Backup Setting'
+              - 'urn:alm:descriptor:label:zh:自动备份设置'
+          - path: backup.tasks[0].name
+            displayName: 自动备份计划名称
+            x-descriptors:
+              - 'urn:alm:descriptor:com.tectonic.ui:arrayFieldGroup:backup.tasks'
+              - 'urn:alm:descriptor:com.tectonic.ui:text'
+              - 'urn:alm:descriptor:label:en:Auto-Backup Plan Name'
+              - 'urn:alm:descriptor:description:en:Only lowercase letter and "-" are allowed here, such as first-auto-backup-plan'
+              - 'urn:alm:descriptor:description:zh:只有小写字母和中横线可以使用, 例如first-auto-backup-plan'
+          - path: backup.tasks[0].enabled
+            displayName: 自动备份开关
+            x-descriptors:
+              - 'urn:alm:descriptor:com.tectonic.ui:arrayFieldGroup:backup.tasks'
+              - 'urn:alm:descriptor:com.tectonic.ui:booleanSwitch'
+              - 'urn:alm:descriptor:label:en:Auto-Backup Switch'
+              - 'urn:alm:descriptor:description:en:Swtich on/off for current auto-backup plan'
+              - 'urn:alm:descriptor:description:zh:当前自动压缩计划的开关'
+              - 'urn:alm:descriptor:com.tectonic.default:true'
+          - path: backup.tasks[0].schedule
+            displayName: 自动备份计划
+            x-descriptors:
+              - 'urn:alm:descriptor:com.tectonic.ui:arrayFieldGroup:backup.tasks'
+              - 'urn:alm:descriptor:com.tectonic.ui:text'
+              - 'urn:alm:descriptor:label:en:Auto-Backup Schedule'
+              - 'urn:alm:descriptor:description:en:Schedule for auto-backup plan in cron format, such as "0 0 * * *"'
+              - 'urn:alm:descriptor:description:zh:Cron格式的自动备份计划的时间安排, 例如"0 0 * * *"'
+          - path: backup.tasks[0].storageName
+            displayName: 备份目标存储名称
+            x-descriptors:
+              - 'urn:alm:descriptor:com.tectonic.ui:arrayFieldGroup:backup.tasks'
+              - 'urn:alm:descriptor:com.tectonic.ui:text'
+              - 'urn:alm:descriptor:label:en:Target Auto-Backup Storage Name'
+              - 'urn:alm:descriptor:description:en:The storage device defined in spec.backup.storages'
+              - 'urn:alm:descriptor:description:zh:定义在spec.backup.storages的存储设备名称'
+          - path: backup.tasks[0].compressionType
+            displayName: 备份压缩类型
+            x-descriptors:
+              - 'urn:alm:descriptor:com.tectonic.ui:arrayFieldGroup:backup.tasks'
+              - 'urn:alm:descriptor:com.tectonic.ui:text'
+              - 'urn:alm:descriptor:label:en:Backup Compression Type'
+              - 'urn:alm:descriptor:description:en:Only support gzip compression for now'
+              - 'urn:alm:descriptor:description:zh:目前仅支持gzip类型的压缩方式'
           - path: advanced
             x-descriptors:
               - 'urn:alm:descriptor:label:en:Advanced Setting'
-              - 'urn:alm:descriptor:label:zh:高级设置'
+              - 'urn:alm:descriptor:label:zh:高级选项'
           - path: mongod.security.enableEncryption
             displayName: 加密存储开关
             x-descriptors:
