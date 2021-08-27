@@ -173,7 +173,6 @@ spec:
               - 'urn:alm:descriptor:label:en:Backup Switch'
               - 'urn:alm:descriptor:description:en:Enable or disbale backup related features'
               - 'urn:alm:descriptor:description:zh:是否开启备份相关功能'
-              - 'urn:alm:descriptor:com.tectonic.default:true'
           - path: backup.storages
             displayName: 备份目标存储
             x-descriptors:
@@ -181,7 +180,7 @@ spec:
               - 'urn:alm:descriptor:com.tectonic.ui:yaml'
               - 'urn:alm:descriptor:label:en:Backup Target Storage Definition'
               - 'urn:alm:descriptor:description:en:Backup target storage device (S3) definition'
-              - 'urn:alm:descriptor:description:zh:备份目标存储设备(S3)定义'
+              - 'urn:alm:descriptor:description:zh:备份目标存储设备(S3)定义。如果暂时不提供存储设备定义，则保留{}即可；如果提供存储定义，可以参考用户手册示例。'
           - path: backup.tasks
             x-descriptors:
               - 'urn:alm:descriptor:label:en:Auto-Backup Setting'
