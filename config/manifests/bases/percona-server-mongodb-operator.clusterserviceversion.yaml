@@ -200,7 +200,7 @@ spec:
               - 'urn:alm:descriptor:com.tectonic.ui:booleanSwitch'
               - 'urn:alm:descriptor:label:en:Auto-Backup Switch'
               - 'urn:alm:descriptor:description:en:Swtich on/off for current auto-backup plan'
-              - 'urn:alm:descriptor:description:zh:当前自动压缩计划的开关'
+              - 'urn:alm:descriptor:description:zh:是否执行当前备份计划。如果关闭此开关，则只会记录当前备份计划但不会触发执行；只有打开此开关，当前备份计划才会执行'
               - 'urn:alm:descriptor:com.tectonic.default:false'
           - path: backup.tasks[0].schedule
             displayName: 自动备份计划
