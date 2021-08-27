@@ -201,7 +201,7 @@ spec:
               - 'urn:alm:descriptor:label:en:Auto-Backup Switch'
               - 'urn:alm:descriptor:description:en:Swtich on/off for current auto-backup plan'
               - 'urn:alm:descriptor:description:zh:当前自动压缩计划的开关'
-              - 'urn:alm:descriptor:com.tectonic.default:true'
+              - 'urn:alm:descriptor:com.tectonic.default:false'
           - path: backup.tasks[0].schedule
             displayName: 自动备份计划
             x-descriptors:
