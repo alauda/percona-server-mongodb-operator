@@ -1,5 +1,8 @@
 package psmdb
 
 const (
-	EventBackupUpdate = "BackupUpdateEvent"
+	EventBackupUpdate  = "BackupUpdate"
+	EventBackupFailed  = "BackupFailed"
+	EventRestoreUpdate = "RestoreUpdate"
+	EventRestoreFailed = "RestoreFailed"
 )

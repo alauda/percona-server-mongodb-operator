@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/percona/percona-backup-mongodb/pbm"
+	"github.com/percona/percona-server-mongodb-operator/pkg/psmdb"
 	"github.com/pkg/errors"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	appsv1 "k8s.io/api/apps/v1"
@@ -15,6 +16,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -37,7 +39,11 @@ func Add(mgr manager.Manager) error {
 
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return &ReconcilePerconaServerMongoDBRestore{client: mgr.GetClient(), scheme: mgr.GetScheme()}
+	return &ReconcilePerconaServerMongoDBRestore{
+		client:   mgr.GetClient(),
+		scheme:   mgr.GetScheme(),
+		recorder: mgr.GetEventRecorderFor("mongodb-server-restore"),
+	}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
@@ -72,8 +78,9 @@ var _ reconcile.Reconciler = &ReconcilePerconaServerMongoDBRestore{}
 type ReconcilePerconaServerMongoDBRestore struct {
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the apiserver
-	client client.Client
-	scheme *runtime.Scheme
+	client   client.Client
+	scheme   *runtime.Scheme
+	recorder record.EventRecorder
 }
 
 // Reconcile reads that state of the cluster for a PerconaServerMongoDBRestore object and makes changes based on the state read
@@ -113,6 +120,18 @@ func (r *ReconcilePerconaServerMongoDBRestore) Reconcile(request reconcile.Reque
 			uerr := r.updateStatus(cr)
 			if uerr != nil {
 				log.Error(uerr, "failed to updated restore status", "restore", cr.Name, "backup", cr.Spec.BackupName)
+			}
+
+			if cr.Status.Error != "" {
+				r.recorder.Event(cr,
+					corev1.EventTypeWarning,
+					psmdb.EventRestoreFailed,
+					fmt.Sprintf("Restore failed with error %s", cr.Status.Error))
+			} else {
+				r.recorder.Event(cr,
+					corev1.EventTypeNormal,
+					psmdb.EventRestoreUpdate,
+					fmt.Sprintf("Restore status change to %s", string(cr.Status.State)))
 			}
 		}
 	}()

@@ -2,6 +2,7 @@ package perconaservermongodbbackup
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/percona/percona-backup-mongodb/pbm"
@@ -118,28 +119,27 @@ func (r *ReconcilePerconaServerMongoDBBackup) Reconcile(request reconcile.Reques
 	status := cr.Status
 
 	defer func() {
-		reason := psmdb.EventBackupUpdate
 		if err != nil {
 			status.State = psmdbv1.BackupStateError
 			status.Error = err.Error()
 			log.Error(err, "failed to make backup", "backup", cr.Name)
 		}
 		if cr.Status.State != status.State || cr.Status.Error != status.Error {
-			if cr.Status.Error != "" {
-				r.recorder.Event(cr,
-					corev1.EventTypeWarning,
-					reason,
-					cr.Status.Error)
-			} else {
-				r.recorder.Event(cr,
-					corev1.EventTypeNormal,
-					reason,
-					string(cr.Status.State))
-			}
 			cr.Status = status
 			uerr := r.updateStatus(cr)
 			if uerr != nil {
 				log.Error(uerr, "failed to update backup status", "backup", cr.Name)
+			}
+			if cr.Status.Error != "" {
+				r.recorder.Event(cr,
+					corev1.EventTypeWarning,
+					psmdb.EventBackupFailed,
+					fmt.Sprintf("Backup failed with error %s", cr.Status.Error))
+			} else {
+				r.recorder.Event(cr,
+					corev1.EventTypeNormal,
+					psmdb.EventBackupUpdate,
+					fmt.Sprintf("Backup status change to %s", string(cr.Status.State)))
 			}
 		}
 	}()

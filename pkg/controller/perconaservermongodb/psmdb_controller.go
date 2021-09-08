@@ -340,11 +340,6 @@ func (r *ReconcilePerconaServerMongoDB) Reconcile(request reconcile.Request) (re
 		return reconcile.Result{}, err
 	}
 
-	r.recorder.Event(cr,
-		corev1.EventTypeWarning,
-		"MongoEventTest",
-		"Mongo Event Test")
-
 	shards := 0
 	for _, replset := range repls {
 		if (cr.Spec.Sharding.Enabled && replset.ClusterRole == api.ClusterRoleShardSvr) ||
