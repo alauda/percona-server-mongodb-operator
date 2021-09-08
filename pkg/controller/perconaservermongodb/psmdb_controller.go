@@ -19,8 +19,8 @@ import (
 	api "github.com/percona/percona-server-mongodb-operator/pkg/apis/psmdb/v1"
 	"github.com/percona/percona-server-mongodb-operator/pkg/psmdb"
 	"github.com/percona/percona-server-mongodb-operator/pkg/psmdb/backup"
-	"github.com/percona/percona-server-mongodb-operator/pkg/psmdb/monitor"
 	"github.com/percona/percona-server-mongodb-operator/pkg/psmdb/mongo"
+	"github.com/percona/percona-server-mongodb-operator/pkg/psmdb/monitor"
 	"github.com/percona/percona-server-mongodb-operator/pkg/psmdb/secret"
 	"github.com/percona/percona-server-mongodb-operator/version"
 	"github.com/pkg/errors"
@@ -33,6 +33,7 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/apiutil"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -78,6 +79,7 @@ func newReconciler(mgr manager.Manager) (reconcile.Reconciler, error) {
 		reconcileIn:   time.Second * 5,
 		crons:         NewCronRegistry(),
 		lockers:       newLockStore(),
+		recorder:      mgr.GetEventRecorderFor("mongodb-server-operator"),
 
 		clientcmd: cli,
 	}, nil
@@ -135,7 +137,8 @@ type ReconcilePerconaServerMongoDB struct {
 	serverVersion *version.ServerVersion
 	reconcileIn   time.Duration
 
-	lockers lockStore
+	lockers  lockStore
+	recorder record.EventRecorder
 }
 
 type lockStore struct {
@@ -336,6 +339,11 @@ func (r *ReconcilePerconaServerMongoDB) Reconcile(request reconcile.Request) (re
 		err = errors.Wrap(err, "reconcile monitor tasks")
 		return reconcile.Result{}, err
 	}
+
+	r.recorder.Event(cr,
+		corev1.EventTypeWarning,
+		"MongoEventTest",
+		"Mongo Event Test")
 
 	shards := 0
 	for _, replset := range repls {
