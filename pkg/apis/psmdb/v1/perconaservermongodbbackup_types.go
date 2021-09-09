@@ -21,7 +21,7 @@ type PerconaServerMongoDBBackupSpec struct {
 type BackupState string
 
 const (
-	BackupStateNew       BackupState = "inited"
+	BackupStateNew       BackupState = ""
 	BackupStateWaiting   BackupState = "waiting"
 	BackupStateRequested BackupState = "requested"
 	BackupStateRejected  BackupState = "rejected"
