@@ -134,7 +134,7 @@ func (r *ReconcilePerconaServerMongoDBBackup) Reconcile(request reconcile.Reques
 				r.recorder.Event(cr,
 					corev1.EventTypeWarning,
 					psmdb.EventBackupFailed,
-					fmt.Sprintf("Backup failed with error %s", cr.Status.Error))
+					fmt.Sprintf("Error! %s", cr.Status.Error))
 			} else {
 				r.recorder.Event(cr,
 					corev1.EventTypeNormal,
