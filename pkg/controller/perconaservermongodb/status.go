@@ -113,10 +113,13 @@ func (r *ReconcilePerconaServerMongoDB) updateStatus(cr *api.PerconaServerMongoD
 
 			cr.Status.AddCondition(rsCondition)
 
-			r.recorder.Event(cr,
-				corev1.EventTypeNormal,
-				psmdb.EventReplsetStatusUpdate,
-				fmt.Sprintf("Replset %s topology: %s", rs.Name, genTopology(status.Members)))
+			topology := genTopology(status.Members)
+			if topology != "" {
+				r.recorder.Event(cr,
+					corev1.EventTypeNormal,
+					psmdb.EventReplsetStatusUpdate,
+					fmt.Sprintf("Replset %s topology: %s", rs.Name, topology))
+			}
 		}
 
 		// Ready count can be greater than total size in case of downscale
@@ -278,10 +281,10 @@ func (r *ReconcilePerconaServerMongoDB) rsStatus(cr *api.PerconaServerMongoDB, r
 	}
 
 	members, err := r.getReplsetMemberStatus(cr, rsSpec)
-	if err != nil {
-		return api.ReplsetStatus{}, errors.Wrapf(err, "getReplsetMemberStatus failed")
+	if err == nil {
+		// Do not complaining about Mongo ping error because it is expected during startup
+		status.Members = members
 	}
-	status.Members = members
 	return status, nil
 }
 
