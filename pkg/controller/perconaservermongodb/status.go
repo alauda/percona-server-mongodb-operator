@@ -122,6 +122,10 @@ func (r *ReconcilePerconaServerMongoDB) updateStatus(cr *api.PerconaServerMongoD
 				corev1.EventTypeNormal,
 				psmdb.EventReplsetStatusUpdate,
 				fmt.Sprintf("Replset %s topology: %s", rs.Name, genTopology(members)))
+		} else {
+			// Let status remember previous cluster roles if cluster status do not change
+			// to avoid connect mongo instance too much
+			status.Members = cr.Status.Replsets[rs.Name].Members
 		}
 
 		// Ready count can be greater than total size in case of downscale
