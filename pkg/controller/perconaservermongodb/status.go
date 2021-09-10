@@ -113,19 +113,10 @@ func (r *ReconcilePerconaServerMongoDB) updateStatus(cr *api.PerconaServerMongoD
 
 			cr.Status.AddCondition(rsCondition)
 
-			members, err := r.getReplsetMemberStatus(cr, rs)
-			if err != nil {
-				return errors.Wrapf(err, "getReplsetMemberStatus failed")
-			}
-			status.Members = members
 			r.recorder.Event(cr,
 				corev1.EventTypeNormal,
 				psmdb.EventReplsetStatusUpdate,
-				fmt.Sprintf("Replset %s topology: %s", rs.Name, genTopology(members)))
-		} else {
-			// Let status remember previous cluster roles if cluster status do not change
-			// to avoid connect mongo instance too much
-			status.Members = cr.Status.Replsets[rs.Name].Members
+				fmt.Sprintf("Replset %s topology: %s", rs.Name, genTopology(status.Members)))
 		}
 
 		// Ready count can be greater than total size in case of downscale
@@ -286,6 +277,11 @@ func (r *ReconcilePerconaServerMongoDB) rsStatus(cr *api.PerconaServerMongoDB, r
 		status.Status = api.AppStateReady
 	}
 
+	members, err := r.getReplsetMemberStatus(cr, rsSpec)
+	if err != nil {
+		return api.ReplsetStatus{}, errors.Wrapf(err, "getReplsetMemberStatus failed")
+	}
+	status.Members = members
 	return status, nil
 }
 
