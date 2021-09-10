@@ -112,19 +112,19 @@ func (r *ReconcilePerconaServerMongoDB) updateStatus(cr *api.PerconaServerMongoD
 			}
 
 			cr.Status.AddCondition(rsCondition)
-
-			topology := genTopology(status.Members)
-			if topology != "" {
-				r.recorder.Event(cr,
-					corev1.EventTypeNormal,
-					psmdb.EventReplsetStatusUpdate,
-					fmt.Sprintf("Replset %s topology: %s", rs.Name, topology))
-			}
 		}
 
 		// Ready count can be greater than total size in case of downscale
 		if status.Ready > status.Size {
 			status.Ready = status.Size
+		}
+
+		topology := genTopology(status.Members)
+		if topology != "" && topology != genTopology(cr.Status.Replsets[rs.Name].Members) {
+			r.recorder.Event(cr,
+				corev1.EventTypeNormal,
+				psmdb.EventReplsetStatusUpdate,
+				fmt.Sprintf("Replset %s topology: %s", rs.Name, topology))
 		}
 
 		cr.Status.Replsets[rs.Name] = &status

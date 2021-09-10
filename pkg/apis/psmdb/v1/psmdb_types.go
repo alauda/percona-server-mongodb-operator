@@ -91,7 +91,7 @@ type UpgradeOptions struct {
 type ReplsetMemberStatus struct {
 	Name        string `json:"name,omitempty"`
 	Version     string `json:"version,omitempty"`
-	ReplsetRole string `json:"replsetrole,omitempty"`
+	ReplsetRole string `json:"role,omitempty"`
 }
 
 type MongosStatus struct {
