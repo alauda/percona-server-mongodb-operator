@@ -117,9 +117,7 @@ func (r *ReconcilePerconaServerMongoDB) updateStatus(cr *api.PerconaServerMongoD
 			if err != nil {
 				return errors.Wrapf(err, "getReplsetMemberStatus failed")
 			}
-			for _, m := range members {
-				cr.Status.Replsets[rs.Name].Members = append(cr.Status.Replsets[rs.Name].Members, m)
-			}
+			status.Members = members
 			r.recorder.Event(cr,
 				corev1.EventTypeNormal,
 				psmdb.EventReplsetStatusUpdate,
