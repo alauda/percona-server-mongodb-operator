@@ -411,6 +411,11 @@ func (r *ReconcilePerconaServerMongoDB) createSystemUsers(cr *api.PerconaServerM
 		return errors.Wrap(err, "failed to create backup")
 	}
 
+	err = mongo.SetSecondaryOk(context.Background(), cli, true)
+	if err != nil {
+		return errors.Wrap(err, "failed to set secondaryOk")
+	}
+
 	return nil
 }
 
