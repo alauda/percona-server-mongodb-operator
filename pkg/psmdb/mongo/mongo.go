@@ -507,5 +507,5 @@ func (m ConfigMember) String() string {
 
 // SetSecondaryOk set whether to allow slave to provide read service
 func SetSecondaryOk(ctx context.Context, client *mongo.Client, ok bool) error {
-	return client.Database("admin").RunCommand(ctx, bson.D{{Key: "secondaryOk", Value: ok}}).Err()
+	return client.Database("admin").RunCommand(ctx, bson.D{{Key: "setSlaveOk", Value: ok}}).Err()
 }
