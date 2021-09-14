@@ -504,8 +504,3 @@ func (m *ConfigMembers) SetVotes() {
 func (m ConfigMember) String() string {
 	return fmt.Sprintf("{votes: %d, priority: %d}", m.Votes, m.Priority)
 }
-
-// SetSecondaryOk set whether to allow slave to provide read service
-func SetSecondaryOk(ctx context.Context, client *mongo.Client, ok bool) error {
-	return client.Database("admin").RunCommand(ctx, bson.D{{Key: "setSlaveOk", Value: ok}}).Err()
-}
