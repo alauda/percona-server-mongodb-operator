@@ -41,7 +41,7 @@ metadata:
               "moduleName":"percona-server-mongodb",
               "upgradeFrom":[
                   {
-                      "versionMatch":">=1.5.0 <3.6.0-323-gc31057a4",
+                      "versionMatch":">=1.5.0 <CURRENT-VERSION",
                       "riskLevel":"Low",
                       "description":"用于问题修复的小版本更新",
                       "instanceConstraints":[
