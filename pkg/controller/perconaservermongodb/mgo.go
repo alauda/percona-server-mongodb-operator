@@ -24,6 +24,11 @@ func (r *ReconcilePerconaServerMongoDB) reconcileCluster(cr *api.PerconaServerMo
 		return api.AppStateReady, nil
 	}
 
+	// To avoid "replica set IDs do not match"
+	if !cr.Status.Replsets[replset.Name].Initialized {
+		time.Sleep(15 * time.Second)
+	}
+
 	cli, err := r.mongoClientWithRole(cr, *replset, roleClusterAdmin)
 	switch {
 	case err != nil:
