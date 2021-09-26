@@ -25,8 +25,8 @@ func (r *ReconcilePerconaServerMongoDB) reconcileCluster(cr *api.PerconaServerMo
 	}
 
 	// To avoid "replica set IDs do not match"
-	if !cr.Status.Replsets[replset.Name].Initialized {
-		time.Sleep(15 * time.Second)
+	if !cr.Status.Replsets[replset.Name].Initialized && !r.isPodsAllHealthy(pods, replset.Size) {
+		return api.AppStateInit, nil
 	}
 
 	cli, err := r.mongoClientWithRole(cr, *replset, roleClusterAdmin)
