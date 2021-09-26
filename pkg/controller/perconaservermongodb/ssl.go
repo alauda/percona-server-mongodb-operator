@@ -44,7 +44,7 @@ func (r *ReconcilePerconaServerMongoDB) reconsileSSL(cr *api.PerconaServerMongoD
 }
 
 func (r *ReconcilePerconaServerMongoDB) createSSLByCertManager(cr *api.PerconaServerMongoDB) error {
-	issuerKind := "ClusterIssuers"
+	issuerKind := "ClusterIssuer"
 	issuerName := "cpaas-ca"
 	certificateDNSNames := []string{"localhost"}
 
