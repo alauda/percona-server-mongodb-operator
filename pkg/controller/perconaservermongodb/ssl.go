@@ -73,7 +73,6 @@ func (r *ReconcilePerconaServerMongoDB) createSSLByCertManager(cr *api.PerconaSe
 		return fmt.Errorf("create issuer: %v", err)
 	}
 
-	duration := metav1.Duration{24 * 365 * 10 * time.Hour}
 	err = r.client.Create(context.TODO(), &cm.Certificate{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:            cr.Name + "-ssl",
@@ -85,7 +84,7 @@ func (r *ReconcilePerconaServerMongoDB) createSSLByCertManager(cr *api.PerconaSe
 			CommonName:   cr.Name,
 			SecretName:   cr.Spec.Secrets.SSL,
 			DNSNames:     certificateDNSNames,
-			Duration:     &duration,
+			Duration:     &metav1.Duration{24 * 365 * 10 * time.Hour},
 			IsCA:         true,
 			IssuerRef: cmmeta.ObjectReference{
 				Name: issuerName,
