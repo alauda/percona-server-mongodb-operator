@@ -171,6 +171,9 @@ func (r *ReconcilePerconaServerMongoDBBackup) Reconcile(request reconcile.Reques
 // reconcile backup. firstly we check if there are concurrent jobs running
 func (r *ReconcilePerconaServerMongoDBBackup) reconcile(cr *psmdbv1.PerconaServerMongoDBBackup, bcp *Backup) (psmdbv1.PerconaServerMongoDBBackupStatus, error) {
 	status := cr.Status
+	if cr.ObjectMeta.DeletionTimestamp != nil {
+		return status, nil
+	}
 
 	cluster := &api.PerconaServerMongoDB{}
 	err := r.client.Get(context.TODO(), types.NamespacedName{Name: cr.Spec.PSMDBCluster, Namespace: cr.Namespace}, cluster)

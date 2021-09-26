@@ -7,10 +7,10 @@ import (
 	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 func (r *ReconcilePerconaServerMongoDB) getMongodPods(cr *api.PerconaServerMongoDB) (corev1.PodList, error) {
@@ -159,6 +159,27 @@ func (r *ReconcilePerconaServerMongoDB) getAllPVCs(cr *api.PerconaServerMongoDB)
 	)
 
 	return list, err
+}
+
+func (r *ReconcilePerconaServerMongoDB) isPodsAllHealthy(pods corev1.PodList, replsize int32) bool {
+	ret := true
+	if len(pods.Items) < int(replsize) {
+		ret = false
+	} else {
+		for _, pod := range pods.Items {
+			for _, cs := range pod.Status.ContainerStatuses {
+				if !cs.Ready {
+					log.Info("Container unhealthy", "pod name", pod.Name, "container name", cs.Name)
+					ret = false
+					break
+				}
+			}
+			if !ret {
+				break
+			}
+		}
+	}
+	return ret
 }
 
 func clusterLabels(cr *api.PerconaServerMongoDB) map[string]string {

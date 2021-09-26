@@ -13,6 +13,7 @@ require (
 	github.com/go-openapi/strfmt v0.19.5
 	github.com/go-openapi/swag v0.19.9
 	github.com/go-openapi/validate v0.19.10
+	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/google/go-cmp v0.5.1 // indirect
 	github.com/hashicorp/go-version v1.2.0
 	github.com/jetstack/cert-manager v0.15.1
@@ -27,7 +28,7 @@ require (
 	github.com/timvaillancourt/go-mongodb-replset v0.0.0-20180529222116-173aaa3b66af
 	github.com/valyala/fasthttp v1.17.0
 	go.mongodb.org/mongo-driver v1.3.4
-	golang.org/x/tools v0.0.0-20201028153306-37f0764111ff // indirect
+	golang.org/x/crypto v0.0.0-20201216223049-8b5274cf687f // indirect
 	gomod.alauda.cn/ait-apis v0.1.4
 	gopkg.in/mgo.v2 v2.0.0-20190816093944-a6b53ec6cb22
 	honnef.co/go/tools v0.0.1-2020.1.5 // indirect

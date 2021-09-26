@@ -8,6 +8,7 @@ import (
 	api "github.com/percona/percona-server-mongodb-operator/pkg/apis/psmdb/v1"
 	"github.com/percona/percona-server-mongodb-operator/pkg/psmdb/backup"
 	"github.com/pkg/errors"
+	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
 )
@@ -21,7 +22,11 @@ func (r *ReconcilePerconaServerMongoDBBackup) newBackup(cr *api.PerconaServerMon
 	cluster := &api.PerconaServerMongoDB{}
 	err := r.client.Get(context.TODO(), types.NamespacedName{Name: cr.Spec.PSMDBCluster, Namespace: cr.Namespace}, cluster)
 	if err != nil {
-		return nil, errors.Wrapf(err, "get cluster %s/%s", cr.Namespace, cr.Spec.PSMDBCluster)
+		if k8serrors.IsNotFound(err) && cr.Status.State == api.BackupStateError {
+			return &Backup{}, nil
+		} else {
+			return nil, errors.Wrapf(err, "get cluster %s/%s", cr.Namespace, cr.Spec.PSMDBCluster)
+		}
 	}
 
 	cn, err := backup.NewPBM(r.client, cluster)
@@ -121,5 +126,9 @@ func (b *Backup) Status(cr *api.PerconaServerMongoDBBackup) (api.PerconaServerMo
 
 // Close closes the PBM connection
 func (b *Backup) Close() error {
-	return b.pbm.Close()
+	if b.pbm != nil {
+		return b.pbm.Close()
+	} else {
+		return nil
+	}
 }
