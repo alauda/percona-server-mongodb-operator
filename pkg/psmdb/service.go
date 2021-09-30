@@ -42,7 +42,10 @@ func Service(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec) *corev1.Serv
 			Namespace:   m.Namespace,
 			Annotations: replset.Expose.ServiceAnnotations,
 			Labels: map[string]string{
-				"app.kubernetes.io/component": "mongod",
+				"app.kubernetes.io/component":  "mongod",
+				"app.kubernetes.io/instance":   m.Name,
+				"app.kubernetes.io/managed-by": "percona-server-mongodb-operator",
+				"app.kubernetes.io/replset":    replset.Name,
 			},
 		},
 		Spec: corev1.ServiceSpec{
