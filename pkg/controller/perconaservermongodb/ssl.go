@@ -92,6 +92,7 @@ func (r *ReconcilePerconaServerMongoDB) createSSLByCertManager(cr *api.PerconaSe
 			},
 		},
 	})
+
 	if err != nil && !k8serrors.IsAlreadyExists(err) {
 		return fmt.Errorf("create certificate: %v", err)
 	}
