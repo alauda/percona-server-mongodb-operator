@@ -421,7 +421,7 @@ func (r *ReconcilePerconaServerMongoDB) getReplsetMemberStatus(cr *api.PerconaSe
 func genTopology(ms []*api.ReplsetMemberStatus) string {
 	top := ""
 	for _, m := range ms {
-		top = fmt.Sprintf("%s; Name %s, Role %s", top, m.Name, m.ReplsetRole)
+		top = fmt.Sprintf("%s; Name %s, Role %s ", top, m.Name, m.ReplsetRole)
 	}
 	return top
 }
