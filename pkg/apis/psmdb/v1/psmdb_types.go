@@ -89,8 +89,9 @@ type UpgradeOptions struct {
 }
 
 type ReplsetMemberStatus struct {
-	Name    string `json:"name,omitempty"`
-	Version string `json:"version,omitempty"`
+	Name        string `json:"name,omitempty"`
+	Version     string `json:"version,omitempty"`
+	ReplsetRole string `json:"role,omitempty"`
 }
 
 type MongosStatus struct {
@@ -189,9 +190,9 @@ type PMMSpec struct {
 }
 
 type MongodbExporterSpec struct {
-	Enabled    bool             `json:"enabled,omitempty"`
-	Image      string           `json:"image,omitempty"`
-	Resources  *ResourcesSpec   `json:"resources,omitempty"`
+	Enabled   bool           `json:"enabled,omitempty"`
+	Image     string         `json:"image,omitempty"`
+	Resources *ResourcesSpec `json:"resources,omitempty"`
 }
 
 type MultiAZ struct {

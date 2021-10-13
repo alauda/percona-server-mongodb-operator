@@ -2,9 +2,11 @@ package perconaservermongodbbackup
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/percona/percona-backup-mongodb/pbm"
+	"github.com/percona/percona-server-mongodb-operator/pkg/psmdb"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/pkg/errors"
@@ -12,6 +14,7 @@ import (
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/tools/record"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
@@ -40,7 +43,11 @@ func Add(mgr manager.Manager) error {
 
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return &ReconcilePerconaServerMongoDBBackup{client: mgr.GetClient(), scheme: mgr.GetScheme()}
+	return &ReconcilePerconaServerMongoDBBackup{
+		client:   mgr.GetClient(),
+		scheme:   mgr.GetScheme(),
+		recorder: mgr.GetEventRecorderFor("mongodb-server-backup"),
+	}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
@@ -76,8 +83,9 @@ var _ reconcile.Reconciler = &ReconcilePerconaServerMongoDBBackup{}
 type ReconcilePerconaServerMongoDBBackup struct {
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the apiserver
-	client client.Client
-	scheme *runtime.Scheme
+	client   client.Client
+	scheme   *runtime.Scheme
+	recorder record.EventRecorder
 }
 
 // Reconcile reads that state of the cluster for a PerconaServerMongoDBBackup object and makes changes based on the state read
@@ -121,6 +129,17 @@ func (r *ReconcilePerconaServerMongoDBBackup) Reconcile(request reconcile.Reques
 			uerr := r.updateStatus(cr)
 			if uerr != nil {
 				log.Error(uerr, "failed to update backup status", "backup", cr.Name)
+			}
+			if cr.Status.Error != "" {
+				r.recorder.Event(cr,
+					corev1.EventTypeWarning,
+					psmdb.EventBackupFailed,
+					fmt.Sprintf("Error! %s", cr.Status.Error))
+			} else {
+				r.recorder.Event(cr,
+					corev1.EventTypeNormal,
+					psmdb.EventBackupUpdate,
+					fmt.Sprintf("Backup status change to %s", string(cr.Status.State)))
 			}
 		}
 	}()

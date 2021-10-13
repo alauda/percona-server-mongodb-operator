@@ -8,6 +8,7 @@ import (
 
 	api "github.com/percona/percona-server-mongodb-operator/pkg/apis/psmdb/v1"
 	"github.com/percona/percona-server-mongodb-operator/pkg/psmdb"
+	"github.com/percona/percona-server-mongodb-operator/pkg/psmdb/mongo"
 	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -116,6 +117,14 @@ func (r *ReconcilePerconaServerMongoDB) updateStatus(cr *api.PerconaServerMongoD
 		// Ready count can be greater than total size in case of downscale
 		if status.Ready > status.Size {
 			status.Ready = status.Size
+		}
+
+		topology := genTopology(status.Members)
+		if topology != "" && topology != genTopology(cr.Status.Replsets[rs.Name].Members) {
+			r.recorder.Event(cr,
+				corev1.EventTypeNormal,
+				psmdb.EventReplsetStatusUpdate,
+				fmt.Sprintf("Replset %s topology: %s", rs.Name, topology))
 		}
 
 		cr.Status.Replsets[rs.Name] = &status
@@ -271,6 +280,11 @@ func (r *ReconcilePerconaServerMongoDB) rsStatus(cr *api.PerconaServerMongoDB, r
 		status.Status = api.AppStateReady
 	}
 
+	members, err := r.getReplsetMemberStatus(cr, rsSpec)
+	if err == nil {
+		// Do not complaining about Mongo ping error because it is expected during startup
+		status.Members = members
+	}
 	return status, nil
 }
 
@@ -373,4 +387,41 @@ func loadBalancerServiceEndpoint(client client.Client, serviceName, namespace st
 		}
 	}
 	return host, nil
+}
+
+func (r *ReconcilePerconaServerMongoDB) getReplsetMemberStatus(cr *api.PerconaServerMongoDB,
+	replset *api.ReplsetSpec) ([]*api.ReplsetMemberStatus, error) {
+	client, err := r.mongoClientWithRole(cr, *replset, roleClusterAdmin)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get mongo client: %v", err)
+	}
+
+	defer func() {
+		err := client.Disconnect(context.TODO())
+		if err != nil {
+			log.Error(err, "failed to close connection")
+		}
+	}()
+
+	status, err := mongo.RSStatus(context.TODO(), client)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get rs status")
+	}
+
+	memberStatus := []*api.ReplsetMemberStatus{}
+	for _, m := range status.Members {
+		ms := api.ReplsetMemberStatus{}
+		ms.Name = m.Name
+		ms.ReplsetRole = m.StateStr
+		memberStatus = append(memberStatus, &ms)
+	}
+	return memberStatus, nil
+}
+
+func genTopology(ms []*api.ReplsetMemberStatus) string {
+	top := ""
+	for _, m := range ms {
+		top = fmt.Sprintf("%s; Name %s, Role %s ", top, m.Name, m.ReplsetRole)
+	}
+	return top
 }
