@@ -44,8 +44,8 @@ func (r *ReconcilePerconaServerMongoDB) reconsileSSL(cr *api.PerconaServerMongoD
 }
 
 func (r *ReconcilePerconaServerMongoDB) createSSLByCertManager(cr *api.PerconaServerMongoDB) error {
-	issuerKind := "Issuer"
-	issuerName := cr.Name + "-psmdb-ca"
+	issuerKind := "ClusterIssuer"
+	issuerName := "cpaas-ca"
 	certificateDNSNames := []string{"localhost"}
 
 	for _, replset := range cr.Spec.Replsets {
@@ -84,6 +84,7 @@ func (r *ReconcilePerconaServerMongoDB) createSSLByCertManager(cr *api.PerconaSe
 			CommonName:   cr.Name,
 			SecretName:   cr.Spec.Secrets.SSL,
 			DNSNames:     certificateDNSNames,
+			Duration:     &metav1.Duration{24 * 365 * 10 * time.Hour},
 			IsCA:         true,
 			IssuerRef: cmmeta.ObjectReference{
 				Name: issuerName,
@@ -91,6 +92,7 @@ func (r *ReconcilePerconaServerMongoDB) createSSLByCertManager(cr *api.PerconaSe
 			},
 		},
 	})
+
 	if err != nil && !k8serrors.IsAlreadyExists(err) {
 		return fmt.Errorf("create certificate: %v", err)
 	}
