@@ -28,8 +28,6 @@ func Service(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec) *corev1.Serv
 	}
 	if replset.Name == "cfg" {
 		ls["app.kubernetes.io/component"] = "cfg"
-	} else {
-		ls["app.kubernetes.io/component"] = "mongod"
 	}
 
 	return &corev1.Service{
