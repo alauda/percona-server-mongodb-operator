@@ -116,6 +116,14 @@ spec:
               - 'urn:alm:descriptor:label:en:Storage Capacity'
               - 'urn:alm:descriptor:description:en:The Kubernetes Persistent Volume size for the MongoDB container'
               - 'urn:alm:descriptor:description:zh:存储容量'
+          - path: image
+            displayName: 镜像版本
+            x-descriptors:
+              - 'urn:alm:descriptor:com.tectonic.ui:select:build-harbor.alauda.cn/middleware/percona-server-mongodb:v4.2.11-mongodb'
+              - 'urn:alm:descriptor:com.tectonic.ui:select:build-harbor.alauda.cn/middleware/percona-server-mongodb:v4.4.6-mongodb'
+              - 'urn:alm:descriptor:com.tectonic.default:build-harbor.alauda.cn/middleware/percona-server-mongodb:v4.2.11-mongodb'
+              - 'urn:alm:descriptor:description:en:Image is the name of the MongoDB server image used for MongoDB nodes in MongoDB cluster.'
+              - 'urn:alm:descriptor:description:zh:MongoDB Server镜像版本。如果需要Mongo Server 4.2，请选择v4.2.11-mongodb；如果要Mongo Server 4.4，请选择v4.4.6-mongodb'
           - path: secrets
             x-descriptors:
               - 'urn:alm:descriptor:label:en:Access Setting'
@@ -308,7 +316,7 @@ spec:
     MongoDB 是一个基于分布式文件存储的数据库，旨在为 WEB 应用提供可扩展的高性能数据存储解决方案，具有高性能、可扩展、易部署、易使用等特性，存取数据非常方便
 
 
-    **支持版本：MongoDB 4.2**
+    **支持版本：MongoDB 4.2 & 4.4**
 
 
     ### 支持的功能
@@ -395,6 +403,9 @@ spec:
     - name: values-yaml-mongo-operator
       image: build-harbor.alauda.cn/middleware/percona-server-mongodb-operator:v3.7-52-g9f47e422
       support_arm: true
-    - name: values-yaml-mongo-server
+    - name: values-yaml-mongo-server-4.2
       image: build-harbor.alauda.cn/middleware/percona-server-mongodb:v4.2.11-mongodb
+      support_arm: true
+    - name: values-yaml-mongo-server-4.4
+      image: build-harbor.alauda.cn/middleware/percona-server-mongodb:v4.4.6-mongodb
       support_arm: true
