@@ -16,11 +16,22 @@ global:
       code: gitlab-ce.alauda.cn/middleware/percona-server-mongodb-operator
       # support_arm: flag for arm support
       support_arm: true
-    mongo-server:
+    mongo-server-4.2:
       # repository: image repository for the image
       repository: middleware/percona-server-mongodb
       # tag: a tag for the component
       tag: v4.2.11-mongodb
+      # thirdparty: if true, the image tag is not updated
+      thirdparty: true
+      # code: code repository address
+      code: gitlab-ce.alauda.cn/middleware/percona-docker
+      # support_arm: flag for arm support
+      support_arm: true
+    mongo-server-4.4:
+      # repository: image repository for the image
+      repository: middleware/percona-server-mongodb
+      # tag: a tag for the component
+      tag: v4.4.6-mongodb
       # thirdparty: if true, the image tag is not updated
       thirdparty: true
       # code: code repository address
