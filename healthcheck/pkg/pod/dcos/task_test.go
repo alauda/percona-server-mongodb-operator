@@ -18,9 +18,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/percona/percona-server-mongodb-operator/healthcheck/tools/dcos"
 	"github.com/percona/percona-server-mongodb-operator/healthcheck/pkg"
 	"github.com/percona/percona-server-mongodb-operator/healthcheck/pkg/pod"
+	"github.com/percona/percona-server-mongodb-operator/healthcheck/tools/dcos"
 	"github.com/stretchr/testify/assert"
 )
 

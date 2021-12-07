@@ -20,10 +20,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/percona/percona-server-mongodb-operator/healthcheck/tools/dcos"
 	"github.com/percona/percona-server-mongodb-operator/healthcheck/pkg"
 	"github.com/percona/percona-server-mongodb-operator/healthcheck/pkg/db"
 	"github.com/percona/percona-server-mongodb-operator/healthcheck/pkg/pod"
+	"github.com/percona/percona-server-mongodb-operator/healthcheck/tools/dcos"
 )
 
 const backupPodNamePrefix = "backup-"
