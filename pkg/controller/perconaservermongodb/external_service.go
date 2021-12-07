@@ -18,19 +18,24 @@ func (r *ReconcilePerconaServerMongoDB) ensureExternalServices(cr *api.PerconaSe
 
 	for _, pod := range podList.Items {
 		service := psmdb.ExternalService(cr, replset, pod.Name)
-		err := setControllerReference(cr, service, r.scheme)
+		services = append(services, *service)
+	}
+
+	// Create exporter service under external scenario
+	service := psmdb.ExternalExporterService(cr, replset)
+	services = append(services, *service)
+
+	for _, svc := range services {
+		err := setControllerReference(cr, &svc, r.scheme)
 		if err != nil {
 			return nil, errors.Wrap(err, "set owner ref for Service "+service.Name)
 		}
 
-		err = r.createOrUpdate(service)
+		err = r.createOrUpdate(&svc)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to create external service for replset "+replset.Name)
 		}
-
-		services = append(services, *service)
 	}
-
 	return services, nil
 }
 
@@ -40,17 +45,23 @@ func (r *ReconcilePerconaServerMongoDB) removeOutdatedServices(cr *api.PerconaSe
 		return nil
 	}
 
-	// needed just for labels
-	service := psmdb.ExternalService(cr, replset, cr.Name+"-"+replset.Name)
-
 	svcNames := make(map[string]struct{}, replset.Size)
-	for i := 0; i < int(replset.Size); i++ {
-		svcNames[service.Name+"-"+strconv.Itoa(i)] = struct{}{}
-	}
-	if replset.Arbiter.Enabled {
-		for i := 0; i < int(replset.Arbiter.Size); i++ {
-			svcNames[service.Name+"-arbiter-"+strconv.Itoa(i)] = struct{}{}
+	if replset.Expose.Enabled {
+		// Keep external service
+		service := psmdb.ExternalService(cr, replset, cr.Name+"-"+replset.Name)
+		for i := 0; i < int(replset.Size); i++ {
+			svcNames[service.Name+"-"+strconv.Itoa(i)] = struct{}{}
 		}
+		if replset.Arbiter.Enabled {
+			for i := 0; i < int(replset.Arbiter.Size); i++ {
+				svcNames[service.Name+"-arbiter-"+strconv.Itoa(i)] = struct{}{}
+			}
+		}
+		svcNames[psmdb.GetExporterServiceName(cr, replset)] = struct{}{}
+	} else {
+		// Keep cluster service
+		service := psmdb.Service(cr, replset)
+		svcNames[service.Name] = struct{}{}
 	}
 
 	// clear old services
@@ -59,7 +70,7 @@ func (r *ReconcilePerconaServerMongoDB) removeOutdatedServices(cr *api.PerconaSe
 		svcList,
 		&client.ListOptions{
 			Namespace:     cr.Namespace,
-			LabelSelector: labels.SelectorFromSet(service.Labels),
+			LabelSelector: labels.SelectorFromSet(psmdb.GetCommonServiceLabels(cr, replset)),
 		},
 	)
 	if err != nil {

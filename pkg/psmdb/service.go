@@ -29,6 +29,8 @@ func Service(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec) *corev1.Serv
 	if replset.Name == "cfg" {
 		ls["app.kubernetes.io/component"] = "cfg"
 	}
+	labels := GetCommonServiceLabels(m, replset)
+	labels["app.kubernetes.io/component"] = "mongod"
 
 	return &corev1.Service{
 		TypeMeta: metav1.TypeMeta{
@@ -39,12 +41,7 @@ func Service(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec) *corev1.Serv
 			Name:        m.Name + "-" + replset.Name,
 			Namespace:   m.Namespace,
 			Annotations: replset.Expose.ServiceAnnotations,
-			Labels: map[string]string{
-				"app.kubernetes.io/component":  "mongod",
-				"app.kubernetes.io/instance":   m.Name,
-				"app.kubernetes.io/managed-by": "percona-server-mongodb-operator",
-				"app.kubernetes.io/replset":    replset.Name,
-			},
+			Labels:      labels,
 		},
 		Spec: corev1.ServiceSpec{
 			Ports: []corev1.ServicePort{
@@ -80,14 +77,10 @@ func ExternalService(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec, podN
 		},
 	}
 
-	svc.Labels = map[string]string{
-		"app.kubernetes.io/name":       "percona-server-mongodb",
-		"app.kubernetes.io/instance":   m.Name,
-		"app.kubernetes.io/replset":    replset.Name,
-		"app.kubernetes.io/managed-by": "percona-server-mongodb-operator",
-		"app.kubernetes.io/part-of":    "percona-server-mongodb",
-		"app.kubernetes.io/component":  "external-service",
-	}
+	svc.Labels = GetCommonServiceLabels(m, replset)
+	svc.Labels["app.kubernetes.io/name"] = "percona-server-mongodb"
+	svc.Labels["app.kubernetes.io/part-of"] = "percona-server-mongodb"
+	svc.Labels["app.kubernetes.io/component"] = "external-service"
 
 	svc.Spec = corev1.ServiceSpec{
 		Ports: []corev1.ServicePort{
@@ -112,6 +105,60 @@ func ExternalService(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec, podN
 	}
 
 	return svc
+}
+
+func GetExporterServiceName(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec) string {
+	return m.Name + "-" + replset.Name + "-" + "exporter"
+}
+
+func GetCommonServiceLabels(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec) map[string]string {
+	return map[string]string{
+		"app.kubernetes.io/instance":   m.Name,
+		"app.kubernetes.io/replset":    replset.Name,
+		"app.kubernetes.io/managed-by": "percona-server-mongodb-operator",
+	}
+}
+
+// ExternalExporterService returns a core/v1 API Service used for exporter under NodePort exposed scenario
+func ExternalExporterService(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec) *corev1.Service {
+	ls := map[string]string{
+		"app.kubernetes.io/name":       "percona-server-mongodb",
+		"app.kubernetes.io/instance":   m.Name,
+		"app.kubernetes.io/replset":    replset.Name,
+		"app.kubernetes.io/managed-by": "percona-server-mongodb-operator",
+		"app.kubernetes.io/part-of":    "percona-server-mongodb",
+	}
+	if replset.Name == "cfg" {
+		ls["app.kubernetes.io/component"] = "cfg"
+	}
+
+	labels := GetCommonServiceLabels(m, replset)
+	labels["app.kubernetes.io/component"] = "mongod"
+
+	return &corev1.Service{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: "v1",
+			Kind:       "Service",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:        GetExporterServiceName(m, replset),
+			Namespace:   m.Namespace,
+			Annotations: replset.Expose.ServiceAnnotations,
+			Labels:      labels,
+		},
+		Spec: corev1.ServiceSpec{
+			Ports: []corev1.ServicePort{
+				{
+					Name:       "mongod-exporter",
+					Port:       9104,
+					TargetPort: intstr.FromInt(int(9104)),
+					Protocol:   "TCP",
+				},
+			},
+			Selector:                 ls,
+			LoadBalancerSourceRanges: replset.Expose.LoadBalancerSourceRanges,
+		},
+	}
 }
 
 type ServiceAddr struct {
