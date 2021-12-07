@@ -121,11 +121,11 @@ spec:
           - path: image
             displayName: 镜像版本
             x-descriptors:
-              - 'urn:alm:descriptor:com.tectonic.ui:select:build-harbor.alauda.cn/middleware/percona-server-mongodb:v4.2.11-mongodb'
+              - 'urn:alm:descriptor:com.tectonic.ui:select:build-harbor.alauda.cn/middleware/percona-server-mongodb:v4.2.17-mongodb'
               - 'urn:alm:descriptor:com.tectonic.ui:select:build-harbor.alauda.cn/middleware/percona-server-mongodb:v4.4.6-mongodb'
-              - 'urn:alm:descriptor:com.tectonic.default:build-harbor.alauda.cn/middleware/percona-server-mongodb:v4.2.11-mongodb'
+              - 'urn:alm:descriptor:com.tectonic.default:build-harbor.alauda.cn/middleware/percona-server-mongodb:v4.2.17-mongodb'
               - 'urn:alm:descriptor:description:en:Image is the name of the MongoDB server image used for MongoDB nodes in MongoDB cluster.'
-              - 'urn:alm:descriptor:description:zh:MongoDB Server镜像版本。如果需要Mongo Server 4.2，请选择v4.2.11-mongodb；如果要Mongo Server 4.4，请选择v4.4.6-mongodb'
+              - 'urn:alm:descriptor:description:zh:MongoDB Server镜像版本。如果需要Mongo Server 4.2，请选择v4.2.17-mongodb；如果要Mongo Server 4.4，请选择v4.4.6-mongodb'
           - path: secrets
             x-descriptors:
               - 'urn:alm:descriptor:label:en:Access Setting'
@@ -412,7 +412,7 @@ spec:
       image: build-harbor.alauda.cn/middleware/percona-server-mongodb-operator:v3.7-58-g7346060e
       support_arm: true
     - name: values-yaml-mongo-server-4.2
-      image: build-harbor.alauda.cn/middleware/percona-server-mongodb:v4.2.11-mongodb
+      image: build-harbor.alauda.cn/middleware/percona-server-mongodb:v4.2.17-mongodb
       support_arm: true
     - name: values-yaml-mongo-server-4.4
       image: build-harbor.alauda.cn/middleware/percona-server-mongodb:v4.4.6-mongodb

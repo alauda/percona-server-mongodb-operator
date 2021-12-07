@@ -1,10 +1,10 @@
-apiVersion: psmdb.percona.com/v1-5-0
+apiVersion: psmdb.percona.com/v1-9-0
 kind: PerconaServerMongoDB
 metadata:
   name: my-cluster-name
 spec:
   image: >-
-    build-harbor.alauda.cn/middleware/percona-server-mongodb:v4.2.11-mongodb
+    build-harbor.alauda.cn/middleware/percona-server-mongodb:v4.2.17-mongodb
   imagePullPolicy: IfNotPresent
   allowUnsafeConfigurations: false
   psmdbLogPath: ''
@@ -64,7 +64,7 @@ spec:
         fsGroup: 1001
       expose:
         enabled: false
-        exposeType: LoadBalancer
+        exposeType: NodePort
       arbiter:
         enabled: false
         size: 1
@@ -94,6 +94,44 @@ spec:
     serviceAccountName: percona-server-mongodb-operator
     storages: {}
     tasks: []
+  sharding:
+    enabled: false
+    configsvrReplSet:
+      size: 3
+      affinity:
+        antiAffinityTopologyKey: "kubernetes.io/hostname"
+      podDisruptionBudget:
+        maxUnavailable: 1
+      resources:
+        limits:
+          cpu: "300m"
+          memory: "0.5G"
+        requests:
+          cpu: "300m"
+          memory: "0.5G"
+      volumeSpec:
+        persistentVolumeClaim:
+          resources:
+            requests:
+              storage: 3Gi
+    mongos:
+      size: 3
+      configuration: |
+        systemLog:
+           verbosity: 1
+      affinity:
+        antiAffinityTopologyKey: "kubernetes.io/hostname"
+      podDisruptionBudget:
+        maxUnavailable: 1
+      resources:
+        limits:
+          cpu: "300m"
+          memory: "0.5G"
+        requests:
+          cpu: "300m"
+          memory: "0.5G"
+      expose:
+        exposeType: ClusterIP
   updateStrategy: SmartUpdate
   upgradeOptions:
     apply: never
