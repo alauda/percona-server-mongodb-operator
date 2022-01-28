@@ -57,9 +57,10 @@ func Service(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec) *corev1.Serv
 					Protocol:   "TCP",
 				},
 			},
-			// ClusterIP:                "None",
+			ClusterIP:                "None",
 			Selector:                 ls,
 			LoadBalancerSourceRanges: replset.Expose.LoadBalancerSourceRanges,
+			PublishNotReadyAddresses: true,
 		},
 	}
 }

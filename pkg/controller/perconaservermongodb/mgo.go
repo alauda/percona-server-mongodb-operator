@@ -24,14 +24,8 @@ func (r *ReconcilePerconaServerMongoDB) reconcileCluster(cr *api.PerconaServerMo
 		return api.AppStateReady, nil
 	}
 
-	// To avoid "replica set IDs do not match"
-	if !cr.Status.Replsets[replset.Name].Initialized && !r.isPodsAllHealthy(pods, replset.Size) {
-		return api.AppStateInit, nil
-	}
-
 	cli, err := r.mongoClientWithRole(cr, *replset, roleClusterAdmin)
-	switch {
-	case err != nil:
+	if err != nil {
 		if cr.Status.Replsets[replset.Name].Initialized {
 			return api.AppStateError, errors.Wrap(err, "dial:")
 		}
@@ -45,12 +39,9 @@ func (r *ReconcilePerconaServerMongoDB) reconcileCluster(cr *api.PerconaServerMo
 		if err != nil {
 			return api.AppStateInit, errors.Wrap(err, "create system users")
 		}
-		fallthrough
-		// this can happen if cluster is initialized but status update failed
-	case !cr.Status.Replsets[replset.Name].Initialized:
-		cr.Status.Replsets[replset.Name].Initialized = true
 
-		cr.Status.Conditions = append(cr.Status.Conditions, api.ClusterCondition{
+		cr.Status.Replsets[replset.Name].Initialized = true
+		cr.Status.AddCondition(api.ClusterCondition{
 			Status:             api.ConditionTrue,
 			Type:               api.AppStateInit,
 			Message:            replset.Name,
@@ -66,6 +57,19 @@ func (r *ReconcilePerconaServerMongoDB) reconcileCluster(cr *api.PerconaServerMo
 			log.Error(err, "failed to close connection")
 		}
 	}()
+
+	// this can happen if cluster is initialized but status update failed
+	if !cr.Status.Replsets[replset.Name].Initialized {
+		cr.Status.Replsets[replset.Name].Initialized = true
+		cr.Status.AddCondition(api.ClusterCondition{
+			Status:             api.ConditionTrue,
+			Type:               api.AppStateInit,
+			Message:            replset.Name,
+			LastTransitionTime: metav1.NewTime(time.Now()),
+		})
+
+		return api.AppStateInit, nil
+	}
 
 	rstRunning, err := r.isRestoreRunning(cr)
 	if err != nil {
@@ -180,7 +184,7 @@ func (r *ReconcilePerconaServerMongoDB) reconcileCluster(cr *api.PerconaServerMo
 		switch member.State {
 		case mongo.MemberStatePrimary, mongo.MemberStateSecondary, mongo.MemberStateArbiter:
 			membersLive++
-		case mongo.MemberStateStartup, mongo.MemberStateStartup2, mongo.MemberStateRecovering, mongo.MemberStateRollback:
+		case mongo.MemberStateStartup, mongo.MemberStateStartup2, mongo.MemberStateRecovering, mongo.MemberStateRollback, mongo.MemberStateDown:
 			return api.AppStateInit, nil
 		default:
 			return api.AppStateError, errors.Errorf("undefined state of the replset member %s: %v", member.Name, member.State)
@@ -266,7 +270,10 @@ func (r *ReconcilePerconaServerMongoDB) handleRsAddToShard(m *api.PerconaServerM
 		return errors.New("mongos pod is not ready")
 	}
 
-	host := psmdb.GetAddr(m, rspod.Name, replset.Name)
+	host, err := psmdb.MongoHost(r.client, m, replset.Name, replset.Expose.Enabled, rspod)
+	if err != nil {
+		return errors.Wrapf(err, "get rsPod %s host", rspod.Name)
+	}
 
 	cli, err := r.mongosClientWithRole(m, roleClusterAdmin)
 	if err != nil {
@@ -381,7 +388,7 @@ func (r *ReconcilePerconaServerMongoDB) createSystemUsers(cr *api.PerconaServerM
 
 	monitorUser, err := r.getInternalCredentials(cr, roleClusterMonitor)
 	if err != nil {
-		return errors.Wrap(err, "failed to get cluster admin")
+		return errors.Wrap(err, "failed to get cluster monitor")
 	}
 
 	err = mongo.CreateUser(context.Background(), cli, monitorUser.Username, monitorUser.Password, roleClusterMonitor)
