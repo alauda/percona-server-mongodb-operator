@@ -9,7 +9,7 @@ global:
       # repository: image repository for the image
       repository: middleware/percona-server-mongodb-operator
       # tag: a tag for the component
-      tag: v3.8-7-g7d2a0ab4
+      tag: v3.8-10-gaee19eb0
       # thirdparty: if true, the image tag is not updated
       thirdparty: true
       # code: code repository address

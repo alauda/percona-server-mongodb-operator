@@ -30,6 +30,7 @@ metadata:
 
 
 
+
           "fromOperator":{
               "moduleName":"percona-server-mongodb",
               "upgradeFrom":[
@@ -340,6 +341,7 @@ spec:
 
 
 
+
       - **集群扩展** - 通过改变 size 参数来增加和移除副本集成员，最小高可用副本集成员数量为3。
       - **监控** - 轻松部署 Percona 监控面板，以便于监控 MongoDB 副本集中各个节点状态。
       - **自动备份** - 配置自动备份，使其按计划运行或随时按需运行。备份是使用 Percona Backup for MongoDB（PBM）执行的，可以存储在任何与S3兼容的云存储提供商中。
@@ -350,6 +352,7 @@ spec:
     将PSMDB用户Secret添加到Kubernetes。用户信息必须放在文件 secrets.yaml 的数据部分中，其中包含用户帐户通过Base64编码的登录名和密码。
 
     以下是一个正确的secrets.yaml示例文件。
+
 
 
 
@@ -385,6 +388,7 @@ spec:
     ### 快速上手
 
     要快速启动并运行，请查看我们的[快速入门指南](docs/platform-usermanual/catalog/7operators/operatordoc/08mongodb/)
+
 
 
 
@@ -433,7 +437,7 @@ spec:
       image: build-harbor.alauda.cn/middleware/mongodb-exporter:v0.20.1-mongodb-exporter
       support_arm: true
     - name: values-yaml-mongo-operator
-      image: build-harbor.alauda.cn/middleware/percona-server-mongodb-operator:v3.8-7-g7d2a0ab4
+      image: build-harbor.alauda.cn/middleware/percona-server-mongodb-operator:v3.8-10-gaee19eb0
       support_arm: true
     - name: values-yaml-mongo-server-4.2
       image: build-harbor.alauda.cn/middleware/percona-server-mongodb:v4.2.17-mongodb
