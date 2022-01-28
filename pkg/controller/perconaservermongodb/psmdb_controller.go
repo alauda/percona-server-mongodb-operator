@@ -361,6 +361,12 @@ func (r *ReconcilePerconaServerMongoDB) Reconcile(request reconcile.Request) (re
 			"app.kubernetes.io/part-of":    "percona-server-mongodb",
 		}
 
+		_, err = r.reconcileStatefulSet(false, cr, replset, matchLabels, internalKey)
+		if err != nil {
+			err = errors.Errorf("reconcile StatefulSet for %s: %v", replset.Name, err)
+			return reconcile.Result{}, err
+		}
+
 		pods, err := r.getRSPods(cr, replset.Name)
 		if err != nil {
 			err = errors.Errorf("get pods list for replset %s: %v", replset.Name, err)
@@ -370,12 +376,6 @@ func (r *ReconcilePerconaServerMongoDB) Reconcile(request reconcile.Request) (re
 		mongosPods, err := r.getMongosPods(cr)
 		if err != nil && !k8serrors.IsNotFound(err) {
 			return reconcile.Result{}, errors.Wrap(err, "get pods list for mongos")
-		}
-
-		_, err = r.reconcileStatefulSet(false, cr, replset, matchLabels, internalKey)
-		if err != nil {
-			err = errors.Errorf("reconcile StatefulSet for %s: %v", replset.Name, err)
-			return reconcile.Result{}, err
 		}
 
 		if replset.Arbiter.Enabled {

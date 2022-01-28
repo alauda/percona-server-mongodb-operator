@@ -4,6 +4,7 @@ import (
 	"context"
 
 	api "github.com/percona/percona-server-mongodb-operator/pkg/apis/psmdb/v1"
+	"github.com/percona/percona-server-mongodb-operator/pkg/psmdb"
 	"github.com/pkg/errors"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -59,6 +60,18 @@ func (r *ReconcilePerconaServerMongoDB) getRSPods(cr *api.PerconaServerMongoDB, 
 	)
 
 	return pods, err
+}
+
+func (r *ReconcilePerconaServerMongoDB) getRSSvcs(cr *api.PerconaServerMongoDB, replset *api.ReplsetSpec) (*corev1.ServiceList, error) {
+	svcList := &corev1.ServiceList{}
+	err := r.client.List(context.TODO(),
+		svcList,
+		&client.ListOptions{
+			Namespace:     cr.Namespace,
+			LabelSelector: labels.SelectorFromSet(psmdb.GetCommonServiceLabels(cr, replset)),
+		},
+	)
+	return svcList, err
 }
 
 func (r *ReconcilePerconaServerMongoDB) getArbiterStatefulset(cr *api.PerconaServerMongoDB, rs string) (appsv1.StatefulSet, error) {
@@ -161,25 +174,45 @@ func (r *ReconcilePerconaServerMongoDB) getAllPVCs(cr *api.PerconaServerMongoDB)
 	return list, err
 }
 
-func (r *ReconcilePerconaServerMongoDB) isPodsAllHealthy(pods corev1.PodList, replsize int32) bool {
-	ret := true
-	if len(pods.Items) < int(replsize) {
-		ret = false
-	} else {
-		for _, pod := range pods.Items {
-			for _, cs := range pod.Status.ContainerStatuses {
-				if !cs.Ready {
-					log.Info("Container unhealthy", "pod name", pod.Name, "container name", cs.Name)
-					ret = false
-					break
-				}
-			}
-			if !ret {
-				break
+func (r *ReconcilePerconaServerMongoDB) isReplsetReadyToInit(cr *api.PerconaServerMongoDB, replset *api.ReplsetSpec) bool {
+	pods, err := r.getRSPods(cr, replset.Name)
+	if err != nil {
+		return false
+	}
+
+	if replset.Arbiter.Enabled && len(pods.Items) < int(replset.Size+replset.Arbiter.Size) {
+		return false
+	} else if !replset.Arbiter.Enabled && len(pods.Items) < int(replset.Size) {
+		return false
+	}
+
+	for _, pod := range pods.Items {
+		for _, cs := range pod.Status.ContainerStatuses {
+			if !cs.Ready {
+				log.Info("Container unhealthy", "pod name", pod.Name, "container name", cs.Name)
+				return false
 			}
 		}
 	}
-	return ret
+
+	if replset.Expose.Enabled {
+		// In above logic, use pod's name to create svc
+		// So here to make sure when pod ready, its svc are ready too
+		svcs, err := r.getRSSvcs(cr, replset)
+		if err != nil {
+			return false
+		}
+		svcNames := make(map[string]struct{}, len(svcs.Items))
+		for _, svc := range svcs.Items {
+			svcNames[svc.Name] = struct{}{}
+		}
+		for _, pod := range pods.Items {
+			if _, ok := svcNames[pod.Name]; !ok {
+				return false
+			}
+		}
+	}
+	return true
 }
 
 func clusterLabels(cr *api.PerconaServerMongoDB) map[string]string {
