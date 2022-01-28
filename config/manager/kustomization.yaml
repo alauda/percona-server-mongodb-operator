@@ -5,6 +5,6 @@ kind: Kustomization
 images:
 - name: controller
   newName: build-harbor.alauda.cn/middleware/percona-server-mongodb-operator
-  newTag: v3.8-4-g7ffdcb4f
+  newTag: v3.8-7-g7d2a0ab4
 commonAnnotations:
-  operatorversion: v3.8-4-g7ffdcb4f
+  operatorversion: v3.8-7-g7d2a0ab4
