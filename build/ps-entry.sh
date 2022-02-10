@@ -1,6 +1,8 @@
 #!/bin/bash
 set -Eeuo pipefail
 
+echo "container user: $(id)"
+
 if [ "${1:0:1}" = '-' ]; then
 	set -- mongod "$@"
 fi
