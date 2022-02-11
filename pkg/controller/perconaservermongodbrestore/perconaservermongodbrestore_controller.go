@@ -216,7 +216,7 @@ func (r *ReconcilePerconaServerMongoDBRestore) reconcileRestore(cr *psmdbv1.Perc
 	}
 	defer pbmc.Close()
 
-	if status.State == psmdbv1.RestoreStateNew || status.State == psmdbv1.RestoreStateWaiting {
+	if status.State == psmdbv1.RestoreStateNew || status.State == psmdbv1.RestoreStateWaiting || status.State == psmdbv1.RestoreStateRetryable {
 		storage, err := r.getStorage(cr, cluster, storageName)
 		if err != nil {
 			return status, errors.Wrap(err, "get storage")
@@ -255,10 +255,15 @@ func (r *ReconcilePerconaServerMongoDBRestore) reconcileRestore(cr *psmdbv1.Perc
 
 	switch meta.Status {
 	case pbm.StatusError:
-		status.State = psmdbv1.RestoreStateError
-		status.Error = meta.Error
-		if err = reEnablePITR(pbmc, cluster.Spec.Backup); err != nil {
-			return status, err
+		if strings.Contains(meta.Error, "convergeClusterWithTimeout") { // FIXME(SuJinpei) : it's better to use error code.
+			status.State = psmdbv1.RestoreStateRetryable
+			log.Info("Not all shards are ready for restore, will retry again", "error message", meta.Error)
+		} else {
+			status.State = psmdbv1.RestoreStateError
+			status.Error = meta.Error
+			if err = reEnablePITR(pbmc, cluster.Spec.Backup); err != nil {
+				return status, err
+			}
 		}
 	case pbm.StatusDone:
 		status.State = psmdbv1.RestoreStateReady
