@@ -68,7 +68,7 @@ const MongoGrafanaJson = `
       "steppedLine": false,
       "targets": [
         {
-          "expr": "rate(mongodb_ss_opcounters{rs_nm=~\"$cluster\", namespace=~\"$namespace\", instance=~\"$host\", legacy_op_type!=\"command\"}[$interval]) or \nirate(mongodb_ss_opcounters{rs_nm=~\"$cluster\", namespace=~\"$namespace\", instance=~\"$host\", legacy_op_type!=\"command\"}[5m])",
+          "expr": "rate(mongodb_ss_opcounters{vmcluster=\"$vmcluster\", rs_nm=\"$mongocluster\", namespace=\"$namespace\", instance=\"$host\", legacy_op_type!=\"command\"}[$interval]) or \nirate(mongodb_ss_opcounters{vmcluster=\"$vmcluster\", rs_nm=\"$mongocluster\", namespace=\"$namespace\", instance=\"$host\", legacy_op_type!=\"command\"}[5m])",
           "format": "time_series",
           "hide": false,
           "interval": "$interval",
@@ -179,7 +179,7 @@ const MongoGrafanaJson = `
       "steppedLine": false,
       "targets": [
         {
-          "expr": "mongodb_ss_connections{rs_nm=~\"$cluster\", namespace=~\"$namespace\", instance=~\"$host\", conn_type=\"current\"}",
+          "expr": "mongodb_ss_connections{vmcluster=\"$vmcluster\", rs_nm=\"$mongocluster\", namespace=\"$namespace\", instance=\"$host\", conn_type=\"current\"}",
           "format": "time_series",
           "hide": false,
           "interval": "$interval",
@@ -291,7 +291,7 @@ const MongoGrafanaJson = `
       "steppedLine": false,
       "targets": [
         {
-          "expr": "mongodb_ss_metrics_cursor_open{rs_nm=~\"$cluster\", namespace=~\"$namespace\", instance=~\"$host\"}",
+          "expr": "mongodb_ss_metrics_cursor_open{vmcluster=\"$vmcluster\", rs_nm=\"$mongocluster\", namespace=\"$namespace\", instance=\"$host\"}",
           "format": "time_series",
           "hide": false,
           "interval": "$interval",
@@ -402,7 +402,7 @@ const MongoGrafanaJson = `
       "steppedLine": false,
       "targets": [
         {
-          "expr": "rate(mongodb_ss_metrics_document{rs_nm=~\"$cluster\", namespace=~\"$namespace\", instance=~\"$host\"}[$interval]) or \nirate(mongodb_ss_metrics_document{rs_nm=~\"$cluster\", namespace=~\"$namespace\", instance=~\"$host\"}[5m])",
+          "expr": "rate(mongodb_ss_metrics_document{vmcluster=\"$vmcluster\", rs_nm=\"$mongocluster\", namespace=\"$namespace\", instance=\"$host\"}[$interval]) or \nirate(mongodb_ss_metrics_document{vmcluster=\"$vmcluster\", rs_nm=\"$mongocluster\", namespace=\"$namespace\", instance=\"$host\"}[5m])",
           "format": "time_series",
           "hide": false,
           "interval": "$interval",
@@ -513,7 +513,7 @@ const MongoGrafanaJson = `
       "steppedLine": false,
       "targets": [
         {
-          "expr": "mongodb_ss_wt_lock_txn_global_lock_application_thread_time_waiting_usecs{rs_nm=~\"$cluster\", namespace=~\"$namespace\", instance=~\"$host\"}",
+          "expr": "mongodb_ss_wt_lock_txn_global_lock_application_thread_time_waiting_usecs{vmcluster=\"$vmcluster\", rs_nm=\"$mongocluster\", namespace=\"$namespace\", instance=\"$host\"}",
           "format": "time_series",
           "hide": false,
           "interval": "$interval",
@@ -625,7 +625,7 @@ const MongoGrafanaJson = `
       "steppedLine": false,
       "targets": [
         {
-          "expr": "rate(mongodb_ss_asserts{rs_nm=~\"$cluster\", namespace=~\"$namespace\", instance=~\"$host\"}[$interval]) or \nirate(mongodb_ss_asserts{rs_nm=~\"$cluster\", namespace=~\"$namespace\", instance=~\"$host\"}[5m])",
+          "expr": "rate(mongodb_ss_asserts{vmcluster=\"$vmcluster\", rs_nm=\"$mongocluster\", namespace=\"$namespace\", instance=\"$host\"}[$interval]) or \nirate(mongodb_ss_asserts{vmcluster=\"$vmcluster\", rs_nm=\"$mongocluster\", namespace=\"$namespace\", instance=\"$host\"}[5m])",
           "format": "time_series",
           "hide": false,
           "interval": "$interval",
@@ -735,7 +735,7 @@ const MongoGrafanaJson = `
       "steppedLine": false,
       "targets": [
         {
-          "expr": "rate(mongodb_ss_extra_info_page_faults{rs_nm=~\"$cluster\", namespace=~\"$namespace\", instance=~\"$host\"}[$interval]) or \nirate(mongodb_ss_extra_info_page_faults{rs_nm=~\"$cluster\", namespace=~\"$namespace\", instance=~\"$host\"}[5m])",
+          "expr": "rate(mongodb_ss_extra_info_page_faults{vmcluster=\"$vmcluster\", rs_nm=\"$mongocluster\", namespace=\"$namespace\", instance=\"$host\"}[$interval]) or \nirate(mongodb_ss_extra_info_page_faults{vmcluster=\"$vmcluster\", rs_nm=\"$mongocluster\", namespace=\"$namespace\", instance=\"$host\"}[5m])",
           "format": "time_series",
           "hide": false,
           "interval": "$interval",
@@ -880,13 +880,13 @@ const MongoGrafanaJson = `
         "datasource": "prometheus",
         "definition": "",
         "hide": 0,
-        "includeAll": true,
-        "label": "Namespace",
+        "includeAll": false,
+        "label": "Kubernetes Cluster",
         "multi": false,
         "multiFormat": "glob",
-        "name": "namespace",
+        "name": "vmcluster",
         "options": [],
-        "query": "label_values(mongodb_ss_connections, namespace)",
+        "query": "label_values(up, vmcluster)",
         "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
@@ -908,13 +908,41 @@ const MongoGrafanaJson = `
         "datasource": "prometheus",
         "definition": "",
         "hide": 0,
-        "includeAll": true,
-        "label": "Cluster",
+        "includeAll": false,
+        "label": "Namespace",
         "multi": false,
         "multiFormat": "glob",
-        "name": "cluster",
+        "name": "namespace",
         "options": [],
-        "query": "label_values(mongodb_ss_connections, rs_nm)",
+        "query": "label_values(mongodb_ss_connections{vmcluster=\"$vmcluster\"}, namespace)",
+        "refresh": 2,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "tagValuesQuery": "",
+        "tags": [],
+        "tagsQuery": "",
+        "type": "query",
+        "useTags": false
+      },
+      {
+        "allFormat": "blob",
+        "allValue": "",
+        "current": {
+          "selected": true,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": "prometheus",
+        "definition": "",
+        "hide": 0,
+        "includeAll": false,
+        "label": "MongoCluster",
+        "multi": false,
+        "multiFormat": "glob",
+        "name": "mongocluster",
+        "options": [],
+        "query": "label_values(mongodb_ss_connections{vmcluster=\"$vmcluster\", namespace=\"$namespace\"}, rs_nm)",
         "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
@@ -942,7 +970,7 @@ const MongoGrafanaJson = `
         "multiFormat": "glob",
         "name": "host",
         "options": [],
-        "query": "label_values(mongodb_ss_connections{rs_nm=~\"$cluster\", namespace=~\"$namespace\"}, instance)",
+        "query": "label_values(mongodb_ss_connections{vmcluster=\"$vmcluster\", namespace=\"$namespace\", rs_nm=\"$mongocluster\", namespace=\"$namespace\"}, instance)",
         "refresh": 2,
         "regex": "",
         "skipUrlSync": false,
