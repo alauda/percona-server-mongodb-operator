@@ -27,5 +27,11 @@ spec:
         name: percona-server-mongodb-operator
         ports:
         - {containerPort: 60000, name: metrics}
-        resources: {}
+        resources:
+          limits:
+            cpu: 300m
+            memory: 300Mi
+          requests:
+            cpu: 300m
+            memory: 300Mi
       serviceAccountName: percona-server-mongodb-operator
