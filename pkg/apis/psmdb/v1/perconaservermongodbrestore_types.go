@@ -35,6 +35,7 @@ const (
 	RestoreStateRunning   RestoreState = "running"
 	RestoreStateError     RestoreState = "error"
 	RestoreStateReady     RestoreState = "ready"
+	RestoreStateRetryable RestoreState = "retryable"
 )
 
 // PerconaServerMongoDBRestoreStatus defines the observed state of PerconaServerMongoDBRestore
