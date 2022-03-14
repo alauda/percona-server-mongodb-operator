@@ -244,7 +244,10 @@ func (cr *PerconaServerMongoDB) CheckNSetDefaults(platform version.Platform, log
 		repls = append(repls, cr.Spec.Sharding.ConfigsvrReplSet)
 	}
 
-	for _, replset := range repls {
+	for idx, replset := range repls {
+		// Set repls' name to avoid dup name confusing
+		replset.Name = fmt.Sprintf("%s-%d", cr.Name, idx)
+
 		if replset.Storage == nil {
 			replset.Storage = cr.Spec.Mongod.Storage
 		}
