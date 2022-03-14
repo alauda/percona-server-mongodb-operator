@@ -68,19 +68,22 @@ func (r *ReconcilePerconaServerMongoDB) reconcileGrafanaDashboards(enabled bool)
 	if err != nil {
 		return err
 	}
-	gd := monitor.GenerateGrafana(WatchNamespace, owner)
-	err = r.client.Get(context.TODO(),
-		types.NamespacedName{Name: gd.Name,
-			Namespace: gd.Namespace},
-		old_gd)
-	if err != nil && !errors.IsNotFound(err) {
-		return err
-	}
-	if errors.IsNotFound(err) {
-		err = r.client.Create(context.TODO(), gd)
-	} else if !reflect.DeepEqual(old_gd.Spec, gd.Spec) {
-		old_gd.Spec = gd.Spec
-		err = r.client.Update(context.TODO(), old_gd)
+
+	gds := monitor.GenerateGrafana(WatchNamespace, owner)
+	for _, gd := range gds {
+		err = r.client.Get(context.TODO(),
+			types.NamespacedName{Name: gd.Name,
+				Namespace: gd.Namespace},
+			old_gd)
+		if err != nil && !errors.IsNotFound(err) {
+			return err
+		}
+		if errors.IsNotFound(err) {
+			err = r.client.Create(context.TODO(), &gd)
+		} else if !reflect.DeepEqual(old_gd.Spec, gd.Spec) {
+			old_gd.Spec = gd.Spec
+			err = r.client.Update(context.TODO(), old_gd)
+		}
 	}
 	return err
 }

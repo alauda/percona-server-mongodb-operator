@@ -8,6 +8,7 @@ import (
 
 	"github.com/go-logr/logr"
 	api "github.com/percona/percona-server-mongodb-operator/pkg/apis/psmdb/v1"
+	"github.com/percona/percona-server-mongodb-operator/pkg/psmdb/monitor"
 	"github.com/percona/percona-server-mongodb-operator/version"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -57,6 +58,16 @@ func MongosDeploymentSpec(cr *api.PerconaServerMongoDB, operatorPod corev1.Pod, 
 	containers, ok := cr.Spec.Sharding.Mongos.MultiAZ.WithSidecars(c)
 	if !ok {
 		log.Info(fmt.Sprintf("Sidecar container name cannot be %s. It's skipped", c.Name))
+	}
+
+	if cr.Spec.MongodbExporter.Enabled {
+		mongodbExporterContainer := monitor.MongodbExporterContainer(cr.Spec.MongodbExporter, cr.Spec.Secrets.Users)
+		res, err := CreateResources(cr.Spec.MongodbExporter.Resources)
+		if err != nil {
+			return appsv1.DeploymentSpec{}, fmt.Errorf("pmm container error: create resources error: %v", err)
+		}
+		mongodbExporterContainer.Resources = res
+		containers = append(containers, mongodbExporterContainer)
 	}
 
 	annotations := cr.Spec.Sharding.Mongos.MultiAZ.Annotations
@@ -347,6 +358,11 @@ func volumes(cr *api.PerconaServerMongoDB, configSource VolumeSourceType) []core
 }
 
 func MongosService(cr *api.PerconaServerMongoDB) corev1.Service {
+	labels := map[string]string{}
+	labels["app.kubernetes.io/component"] = "mongos"
+	labels["app.kubernetes.io/managed-by"] = "percona-server-mongodb-operator"
+	labels["app.kubernetes.io/instance"] = cr.Name
+
 	svc := corev1.Service{
 		TypeMeta: metav1.TypeMeta{
 			APIVersion: "v1",
@@ -355,6 +371,7 @@ func MongosService(cr *api.PerconaServerMongoDB) corev1.Service {
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      cr.Name + "-" + "mongos",
 			Namespace: cr.Namespace,
+			Labels:    labels,
 		},
 	}
 
@@ -380,6 +397,12 @@ func MongosServiceSpec(cr *api.PerconaServerMongoDB) corev1.ServiceSpec {
 				Name:       mongosPortName,
 				Port:       cr.Spec.Sharding.Mongos.Port,
 				TargetPort: intstr.FromInt(int(cr.Spec.Sharding.Mongos.Port)),
+			},
+			{
+				Name:       "mongod-exporter",
+				Port:       9104,
+				TargetPort: intstr.FromInt(int(9104)),
+				Protocol:   "TCP",
 			},
 		},
 		Selector:                 ls,
