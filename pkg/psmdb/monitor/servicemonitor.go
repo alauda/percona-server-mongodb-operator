@@ -19,8 +19,12 @@ func GenerateServiceMonitor(owner metav1.OwnerReference) *v1.ServiceMonitor {
 		},
 		Spec: v1.ServiceMonitorSpec{
 			Selector: metav1.LabelSelector{
-				MatchLabels: map[string]string{
-					"app.kubernetes.io/component": "mongod",
+				MatchExpressions: []metav1.LabelSelectorRequirement{
+					{
+						Key:      "app.kubernetes.io/component",
+						Operator: metav1.LabelSelectorOpIn,
+						Values:   []string{"mongos", "mongod"},
+					},
 				},
 			},
 			NamespaceSelector: v1.NamespaceSelector{
