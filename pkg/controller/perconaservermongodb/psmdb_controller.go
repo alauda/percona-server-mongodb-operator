@@ -211,6 +211,12 @@ func (r *ReconcilePerconaServerMongoDB) Reconcile(request reconcile.Request) (re
 		return rr, err
 	}
 
+	err = r.updateReplsetNameIfNeeded(cr)
+	if err != nil {
+		logger.Info("Replset's name are not conform to rules, modifing them")
+		return reconcile.Result{}, err
+	}
+
 	clusterStatus := api.AppStateInit
 
 	defer func() {
@@ -1522,4 +1528,24 @@ func getObjectByName(c client.Client, n types.NamespacedName, obj runtime.Object
 	}
 
 	return false, nil
+}
+
+func (r *ReconcilePerconaServerMongoDB) updateReplsetNameIfNeeded(cr *api.PerconaServerMongoDB) error {
+	modified := false
+	repls := cr.Spec.Replsets
+	for idx, replset := range repls {
+		regular := fmt.Sprintf("%s%d", cr.Name, idx)
+		if regular != replset.Name {
+			modified = true
+			// Set repls' name to avoid dup name confusing
+			replset.Name = regular
+		}
+	}
+	if modified {
+		err := r.client.Update(context.TODO(), cr)
+		if err != nil {
+			return errors.Wrap(err, "send update")
+		}
+	}
+	return nil
 }
