@@ -239,11 +239,6 @@ func (cr *PerconaServerMongoDB) CheckNSetDefaults(platform version.Platform, log
 	}
 
 	repls := cr.Spec.Replsets
-	for idx, replset := range repls {
-		// Set repls' name to avoid dup name confusing
-		replset.Name = fmt.Sprintf("%s-%d", cr.Name, idx)
-
-	}
 	if cr.Spec.Sharding.Enabled && cr.Spec.Sharding.ConfigsvrReplSet != nil {
 		cr.Spec.Sharding.ConfigsvrReplSet.Arbiter.Enabled = false
 		repls = append(repls, cr.Spec.Sharding.ConfigsvrReplSet)
