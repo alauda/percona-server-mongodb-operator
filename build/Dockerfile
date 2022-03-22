@@ -1,4 +1,4 @@
-FROM build-harbor.alauda.cn/ops/golang:1.16.7-alpine3.15 AS go_builder
+FROM build-harbor.alauda.cn/ops/golang:1.17 AS go_builder
 WORKDIR /go/src/github.com/percona/percona-server-mongodb-operator
 
 COPY . .
