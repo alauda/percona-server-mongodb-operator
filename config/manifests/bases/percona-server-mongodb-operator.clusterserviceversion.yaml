@@ -20,12 +20,6 @@ metadata:
     support: Alauda
     mapModuleInfos: >-
       {
-
-
-
-
-
-
           "fromOperator":{
               "moduleName":"percona-server-mongodb",
               "upgradeFrom":[
@@ -71,6 +65,14 @@ spec:
             x-descriptors:
               - 'urn:alm:descriptor:label:en:Replica Setting'
               - 'urn:alm:descriptor:label:zh:副本集设置'
+          - path: replsets[0].name
+            displayName: 副本集名称
+            x-descriptors:
+              - 'urn:alm:descriptor:com.tectonic.ui:fieldGroup:replsets'
+              - 'urn:alm:descriptor:com.tectonic.ui:text'
+              - 'urn:alm:descriptor:label:en:MongoDB ReplSet Name'
+              - 'urn:alm:descriptor:description:en:The name of the MongoDB replica set. This name should be unique among current namespace!'
+              - 'urn:alm:descriptor:description:zh:MongoDB副本集名称, 当前命名空间中必须保持副本集名称唯一!'
           - path: replsets[0].size
             displayName: 副本集节点数
             x-descriptors:
