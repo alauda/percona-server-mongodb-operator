@@ -54,7 +54,8 @@ func (r *ReconcilePerconaServerMongoDB) reconcileServiceMonitors(enabled bool) e
 	if errors.IsNotFound(err) {
 		_, err = p.MonitoringV1().ServiceMonitors(WatchNamespace).Create(sm)
 	} else if !reflect.DeepEqual(m.Spec, sm.Spec) {
-		_, err = p.MonitoringV1().ServiceMonitors(WatchNamespace).Update(sm)
+		m.Spec = sm.Spec
+		_, err = p.MonitoringV1().ServiceMonitors(WatchNamespace).Update(m)
 	}
 	return err
 }
