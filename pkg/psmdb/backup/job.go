@@ -18,9 +18,10 @@ func BackupCronJob(backup *api.BackupTaskSpec, crName, namespace string, backupS
 		ServiceAccountName: backupSpec.ServiceAccountName,
 		Containers: []corev1.Container{
 			{
-				Name:    "backup",
-				Image:   backupSpec.Image,
-				Command: []string{"sh"},
+				Name:            "backup",
+				Image:           backupSpec.Image,
+				ImagePullPolicy: api.DefaultImagePullPolicy,
+				Command:         []string{"sh"},
 				Env: []corev1.EnvVar{
 					{
 						Name:  "psmdbCluster",

@@ -96,7 +96,7 @@ func PMMContainer(spec api.PMMSpec, secrets string, customLogin bool, clusterNam
 	pmm := corev1.Container{
 		Name:            "pmm-client",
 		Image:           spec.Image,
-		ImagePullPolicy: corev1.PullIfNotPresent,
+		ImagePullPolicy: api.DefaultImagePullPolicy,
 		Env: []corev1.EnvVar{
 			{
 				Name:  "PMM_SERVER",
