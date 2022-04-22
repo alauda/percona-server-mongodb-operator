@@ -18,6 +18,7 @@ const DefaultDNSSuffix = "svc.cluster.local"
 // ConfigReplSetName is the only possible name for config replica set
 const ConfigReplSetName = "cfg"
 const WorkloadSA = "default"
+const DefaultImagePullPolicy = corev1.PullAlways
 
 var (
 	defaultRunUID                   int64 = 1001
@@ -29,7 +30,6 @@ var (
 	defaultWiredTigerCacheSizeRatio       = 0.5
 	defaultInMemorySizeRatio              = 0.9
 	defaultOperationProfilingMode         = OperationProfilingModeSlowOp
-	defaultImagePullPolicy                = corev1.PullIfNotPresent
 )
 
 const (
@@ -53,7 +53,7 @@ func (cr *PerconaServerMongoDB) CheckNSetDefaults(platform version.Platform, log
 		return fmt.Errorf("Required value for spec.image")
 	}
 	if cr.Spec.ImagePullPolicy == "" {
-		cr.Spec.ImagePullPolicy = defaultImagePullPolicy
+		cr.Spec.ImagePullPolicy = DefaultImagePullPolicy
 	}
 	if cr.Spec.Secrets == nil {
 		cr.Spec.Secrets = &SecretsSpec{}

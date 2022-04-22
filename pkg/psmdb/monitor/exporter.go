@@ -50,7 +50,7 @@ func MongodbExporterContainer(spec api.MongodbExporterSpec, secrets string) core
 	mongodb_exporter := corev1.Container{
 		Name:            "mongod-exporter",
 		Image:           spec.Image,
-		ImagePullPolicy: corev1.PullIfNotPresent,
+		ImagePullPolicy: api.DefaultImagePullPolicy,
 		Env:             dbArgsEnv,
 		Args:            ExporterArgs,
 		Ports:           exportPorts,
