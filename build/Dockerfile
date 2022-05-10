@@ -1,4 +1,4 @@
-FROM golang:1.16 AS go_builder
+FROM build-harbor.alauda.cn/ops/golang:1.17 AS go_builder
 WORKDIR /go/src/github.com/percona/percona-server-mongodb-operator
 
 COPY . .
@@ -27,7 +27,7 @@ RUN find vendor -regextype posix-extended -iregex '.*(license|notice)(\.md|\.txt
             sh -c 'mkdir -pv /licenses/$(echo "$0" | sed -E "s/\/(license|notice).*$//gi") \
                    && cp -v "$0" /licenses/$(echo "$0" | sed -E "s/\/(license|notice).*$//gi")' {} \;
 
-FROM build-harbor.alauda.cn/ops/alpine:3.14.0
+FROM build-harbor.alauda.cn/ops/alpine:3.15
 
 LABEL name="Percona Server for MongoDB Operator" \
       vendor="Percona" \
