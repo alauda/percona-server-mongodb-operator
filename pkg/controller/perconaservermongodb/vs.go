@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"strings"
 	"time"
 
 	"github.com/percona/percona-server-mongodb-operator/versionserviceclient"
@@ -15,10 +14,6 @@ import (
 const productName = "psmdb-operator"
 
 func (vs VersionServiceClient) GetExactVersion(endpoint string, vm VersionMeta) (DepVersion, error) {
-	if strings.Contains(endpoint, "https://check.percona.com/versions") {
-		endpoint = "https://check.percona.com"
-	}
-
 	requestURL, err := url.Parse(endpoint)
 	if err != nil {
 		return DepVersion{}, err

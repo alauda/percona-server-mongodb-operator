@@ -145,5 +145,3 @@ spec:
   updateStrategy: SmartUpdate
   upgradeOptions:
     apply: never
-    schedule: 0 2 * * *
-    versionServiceEndpoint: 'https://check.percona.com/versions/'
