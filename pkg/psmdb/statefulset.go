@@ -111,7 +111,7 @@ func StatefulSpec(m *api.PerconaServerMongoDB, replset *api.ReplsetSpec, contain
 	}
 
 	if c := replset.Configuration; c != "" && configSource == VolumeSourceConfigMap {
-		annotations["percona.com/configuration-hash"] = fmt.Sprintf("%x", md5.Sum([]byte(c)))
+		annotations["percona.com/configuration-hash"] = fmt.Sprintf("%x", md5.Sum([]byte(c))) //#nosec
 	}
 
 	return appsv1.StatefulSetSpec{

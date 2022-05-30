@@ -35,13 +35,13 @@ func TestInternalDBUri(t *testing.T) {
 			Enabled: false,
 		},
 	}
-	assert.Equal(t, "mongodb://admin:123456@test:1234", config.Uri(), ".Uri() returned invalid uri")
+	assert.Equal(t, "mongodb://admin:123456@test:1234", config.Uri(), ".Uri() returned invalid uri") //NOSONAR
 
 	config.SSL.Enabled = true
-	assert.Equal(t, "mongodb://admin:123456@test:1234?ssl=true", config.Uri(), ".Uri() returned invalid uri")
+	assert.Equal(t, "mongodb://admin:123456@test:1234?ssl=true", config.Uri(), ".Uri() returned invalid uri") //NOSONAR
 
 	config.DialInfo.ReplicaSetName = "test"
-	assert.Equal(t, "mongodb://admin:123456@test:1234?replicaSet=test&ssl=true", config.Uri(), ".Uri() returned invalid uri")
+	assert.Equal(t, "mongodb://admin:123456@test:1234?replicaSet=test&ssl=true", config.Uri(), ".Uri() returned invalid uri") //NOSONAR
 }
 
 func TestInternalDBNewConfig(t *testing.T) {
@@ -57,7 +57,7 @@ func TestInternalDBNewConfig(t *testing.T) {
 	defer os.Unsetenv(pkg.EnvMongoDBPort)
 	defer os.Unsetenv(pkg.EnvMongoDBReplset)
 
-	_, err = app.Parse([]string{"--username=test", "--password=test"})
+	_, err = app.Parse([]string{"--username=test", "--password=test"}) //NOSONAR
 	assert.NoError(t, err)
 	assert.Equal(t, []string{getDefaultMongoDBAddress()}, cnf.DialInfo.Addrs)
 	assert.Equal(t, t.Name(), cnf.DialInfo.ReplicaSetName)
@@ -71,7 +71,7 @@ func TestInternalDBNewSSLConfig(t *testing.T) {
 
 	os.Setenv(pkg.EnvMongoDBNetSSLEnabled, "true")
 	defer os.Unsetenv(pkg.EnvMongoDBNetSSLEnabled)
-	_, err = app.Parse([]string{"--username=test", "--password=test"})
+	_, err = app.Parse([]string{"--username=test", "--password=test"}) //NOSONAR
 	assert.NoError(t, err)
 	assert.True(t, cnf.SSL.Enabled)
 }

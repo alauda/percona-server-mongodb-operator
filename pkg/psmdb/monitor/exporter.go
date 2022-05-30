@@ -43,7 +43,7 @@ func MongodbExporterContainer(spec api.MongodbExporterSpec, secrets string) core
 	ExporterArgs := []string{
 		"--web.listen-address=:9104",
 		"--mongodb.uri",
-		"mongodb://$(MONGODB_USER):$(MONGODB_PASSWORD)@127.0.0.1:27017/",
+		"mongodb://$(MONGODB_USER):$(MONGODB_PASSWORD)@127.0.0.1:27017/", //NOSONAR
 		"--compatible-mode",
 	}
 

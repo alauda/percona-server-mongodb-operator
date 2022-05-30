@@ -27,7 +27,7 @@ const (
 	EnvMongoDBMongodEndpointName       = "MONGODB_MONGOD_ENDPOINT_NAME"
 	EnvMongoDBChangeUserDb             = "MONGODB_CHANGE_USER_DB"
 	EnvMongoDBChangeUserUsername       = "MONGODB_CHANGE_USER_USERNAME"
-	EnvMongoDBChangeUserNewPassword    = "MONGODB_CHANGE_USER_NEW_PASSWORD"
+	EnvMongoDBChangeUserNewPassword    = "MONGODB_CHANGE_USER_NEW_PASSWORD" //#nosec
 	EnvMongoDBWiredTigerCacheSizeRatio = "MONGODB_STORAGE_WIREDTIGER_ENGINE_CONFIG_CACHE_SIZE_RATIO"
 
 	EnvWatchdogMetricsListen = "WATCHDOG_METRICS_LISTEN"

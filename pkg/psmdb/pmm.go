@@ -8,6 +8,7 @@ import (
 	"github.com/pkg/errors"
 )
 
+/* #nosec */
 const (
 	PMMUserKey     = "PMM_SERVER_USER"
 	PMMPasswordKey = "PMM_SERVER_PASSWORD"

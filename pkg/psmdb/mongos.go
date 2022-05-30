@@ -76,7 +76,7 @@ func MongosDeploymentSpec(cr *api.PerconaServerMongoDB, operatorPod corev1.Pod, 
 	}
 
 	if c := cr.Spec.Sharding.Mongos.Configuration; c != "" && configSource == VolumeSourceConfigMap {
-		annotations["percona.com/configuration-hash"] = fmt.Sprintf("%x", md5.Sum([]byte(c)))
+		annotations["percona.com/configuration-hash"] = fmt.Sprintf("%x", md5.Sum([]byte(c))) //#nosec
 	}
 
 	zero := intstr.FromInt(0)
