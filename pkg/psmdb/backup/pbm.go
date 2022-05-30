@@ -22,6 +22,7 @@ import (
 	"github.com/percona/percona-server-mongodb-operator/pkg/psmdb"
 )
 
+/* #nosec */
 const (
 	agentContainerName          = "backup-agent"
 	awsAccessKeySecretKey       = "AWS_ACCESS_KEY_ID"

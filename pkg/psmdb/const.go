@@ -19,7 +19,7 @@ const (
 	sslInternalDir       = "/etc/mongodb-ssl-internal"
 	mongodConfigDir      = "/etc/mongodb-config"
 	mongosConfigDir      = "/etc/mongos-config"
-	mongodSecretsDir     = "/etc/mongodb-secrets"
+	mongodSecretsDir     = "/etc/mongodb-secrets" //#nosec
 	mongodRESTencryptDir = "/etc/mongodb-encryption"
 	EncryptionKeyName    = "encryption-key"
 	mongodPortName       = "mongodb"

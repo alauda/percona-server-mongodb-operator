@@ -80,7 +80,8 @@ func NewConfig(app *kingpin.Application, envUser string, envPassword string) (*C
 		"mongodb auth username, this flag or env var "+envUser+" is required",
 	).Envar(envUser).Required().StringVar(&db.DialInfo.Username)
 
-	pwdFile := "/etc/users-secret/MONGODB_CLUSTER_MONITOR_PASSWORD"
+	/* #nosec */
+	pwdFile := "/etc/users-secret/MONGODB_CLUSTER_MONITOR_PASSWORD" //NOSONAR
 	if _, err := os.Stat(pwdFile); err == nil {
 		pass, err := ioutil.ReadFile(pwdFile)
 		if err != nil {

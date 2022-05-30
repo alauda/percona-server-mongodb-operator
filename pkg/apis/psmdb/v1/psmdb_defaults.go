@@ -22,7 +22,7 @@ const DefaultImagePullPolicy = corev1.PullAlways
 
 var (
 	defaultRunUID                   int64 = 1001
-	defaultUsersSecretName                = "percona-server-mongodb-users"
+	defaultUsersSecretName                = "percona-server-mongodb-users" //#nosec
 	defaultMongodSize               int32 = 3
 	defaultReplsetName                    = "rs"
 	defaultStorageEngine                  = StorageEngineWiredTiger

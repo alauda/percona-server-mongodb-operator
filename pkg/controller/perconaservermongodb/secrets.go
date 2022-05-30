@@ -14,6 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/types"
 )
 
+/* #nosec */
 const (
 	envMongoDBClusterAdminUser       = "MONGODB_CLUSTER_ADMIN_USER"
 	envMongoDBClusterAdminPassword   = "MONGODB_CLUSTER_ADMIN_PASSWORD"

@@ -22,21 +22,9 @@ const (
 	EnvMongoDBIp      = "MONGODB_IP"
 	EnvMongoDBReplset = "MONGODB_REPLSET"
 
-	// backup user
-	EnvMongoDBBackupUser     = "MONGODB_BACKUP_USER"
-	EnvMongoDBBackupPassword = "MONGODB_BACKUP_PASSWORD"
-
-	// clusterAdmin user
-	EnvMongoDBClusterAdminUser     = "MONGODB_CLUSTER_ADMIN_USER"
-	EnvMongoDBClusterAdminPassword = "MONGODB_CLUSTER_ADMIN_PASSWORD"
-
 	// clusterMonitor user
-	EnvMongoDBClusterMonitorUser     = "MONGODB_CLUSTER_MONITOR_USER"
-	EnvMongoDBClusterMonitorPassword = "MONGODB_CLUSTER_MONITOR_PASSWORD"
-
-	// userAdmin user
-	EnvMongoDBUserAdminUser     = "MONGODB_USER_ADMIN_USER"
-	EnvMongoDBUserAdminPassword = "MONGODB_USER_ADMIN_PASSWORD"
+	EnvMongoDBClusterMonitorUser     = "MONGODB_CLUSTER_MONITOR_USER"     //#nosec
+	EnvMongoDBClusterMonitorPassword = "MONGODB_CLUSTER_MONITOR_PASSWORD" //#nosec
 
 	// mongodb ssl
 	EnvMongoDBNetSSLEnabled    = "MONGODB_NET_SSL_ENABLED"
