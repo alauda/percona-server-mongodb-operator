@@ -79,6 +79,8 @@ func NewBackupCronJobLabels(crName string) map[string]string {
 		"app.kubernetes.io/managed-by": "percona-server-mongodb-operator",
 		"app.kubernetes.io/component":  "backup-schedule",
 		"app.kubernetes.io/part-of":    "percona-server-mongodb",
+		"middleware.instance/type":     "percona-server-mongodb",
+		"middleware.instance/name":     crName,
 	}
 }
 
