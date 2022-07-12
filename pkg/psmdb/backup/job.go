@@ -71,7 +71,15 @@ func BackupCronJob(backup *api.BackupTaskSpec, crName, namespace string, backupS
 	}
 }
 
+// CronJobLabels = CronJobLabelSelectors + CustomLabels
 func NewBackupCronJobLabels(crName string) map[string]string {
+	labels := BackupCronJobLabelSelectors(crName)
+	labels["middleware.instance/type"] = "percona-server-mongodb"
+	labels["middleware.instance/name"] = crName
+	return labels
+}
+
+func BackupCronJobLabelSelectors(crName string) map[string]string {
 	return map[string]string{
 		"app.kubernetes.io/name":       "percona-server-mongodb",
 		"app.kubernetes.io/instance":   crName,
@@ -79,8 +87,6 @@ func NewBackupCronJobLabels(crName string) map[string]string {
 		"app.kubernetes.io/managed-by": "percona-server-mongodb-operator",
 		"app.kubernetes.io/component":  "backup-schedule",
 		"app.kubernetes.io/part-of":    "percona-server-mongodb",
-		"middleware.instance/type":     "percona-server-mongodb",
-		"middleware.instance/name":     crName,
 	}
 }
 

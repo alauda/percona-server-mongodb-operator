@@ -359,8 +359,6 @@ func (r *ReconcilePerconaServerMongoDB) Reconcile(request reconcile.Request) (re
 			"app.kubernetes.io/replset":    replset.Name,
 			"app.kubernetes.io/managed-by": "percona-server-mongodb-operator",
 			"app.kubernetes.io/part-of":    "percona-server-mongodb",
-			"middleware.instance/type":     "percona-server-mongodb",
-			"middleware.instance/name":     cr.Name,
 		}
 
 		_, err = r.reconcileStatefulSet(false, cr, replset, matchLabels, internalKey)
@@ -1058,6 +1056,13 @@ func (r *ReconcilePerconaServerMongoDB) reconcileStatefulSet(arbiter bool, cr *a
 		pdbspec = replset.Arbiter.PodDisruptionBudget
 		resources = replset.Arbiter.Resources
 	}
+
+	// Add two middleware curtom-labels
+	if multiAZ.Labels == nil {
+		multiAZ.Labels = map[string]string{}
+	}
+	multiAZ.Labels["middleware.instance/type"] = "percona-server-mongodb"
+	multiAZ.Labels["middleware.instance/name"] = cr.Name
 
 	if replset.ClusterRole == api.ClusterRoleConfigSvr {
 		matchLabels["app.kubernetes.io/component"] = api.ConfigReplSetName
