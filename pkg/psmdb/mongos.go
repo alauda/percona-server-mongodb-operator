@@ -36,13 +36,15 @@ func MongosDeploymentSpec(cr *api.PerconaServerMongoDB, operatorPod corev1.Pod, 
 		"app.kubernetes.io/component":  "mongos",
 		"app.kubernetes.io/managed-by": "percona-server-mongodb-operator",
 		"app.kubernetes.io/part-of":    "percona-server-mongodb",
-		"middleware.instance/type":     "percona-server-mongodb",
-		"middleware.instance/name":     cr.Name,
 	}
+
+	customLabels := ls
+	customLabels["middleware.instance/type"] = "percona-server-mongodb"
+	customLabels["middleware.instance/name"] = cr.Name
 
 	if cr.Spec.Sharding.Mongos.Labels != nil {
 		for k, v := range cr.Spec.Sharding.Mongos.Labels {
-			ls[k] = v
+			customLabels[k] = v
 		}
 	}
 
@@ -89,7 +91,7 @@ func MongosDeploymentSpec(cr *api.PerconaServerMongoDB, operatorPod corev1.Pod, 
 		},
 		Template: corev1.PodTemplateSpec{
 			ObjectMeta: metav1.ObjectMeta{
-				Labels:      ls,
+				Labels:      customLabels,
 				Annotations: annotations,
 			},
 			Spec: corev1.PodSpec{
