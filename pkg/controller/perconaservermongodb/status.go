@@ -15,6 +15,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/util/retry"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 )
 
@@ -217,25 +218,28 @@ func (r *ReconcilePerconaServerMongoDB) upgradeInProgress(cr *api.PerconaServerM
 		return false, err
 	}
 
-	return sfsObj.Status.Replicas > sfsObj.Status.UpdatedReplicas, nil
+	return sfsObj.Status.Replicas > *sfsObj.Spec.Replicas, nil
 }
 
 func (r *ReconcilePerconaServerMongoDB) writeStatus(cr *api.PerconaServerMongoDB) error {
-	err := r.client.Status().Update(context.TODO(), cr)
-	if err != nil {
-		// may be it's k8s v1.10 and erlier (e.g. oc3.9) that doesn't support status updates
-		// so try to update whole CR
-		err := r.client.Update(context.TODO(), cr)
-		if err != nil {
-			return errors.Wrap(err, "send update")
-		}
-	}
+	err := retry.RetryOnConflict(retry.DefaultRetry, func() error {
+		c := &api.PerconaServerMongoDB{}
 
-	return nil
+		err := r.client.Get(context.TODO(), types.NamespacedName{Name: cr.Name, Namespace: cr.Namespace}, c)
+		if err != nil {
+			return err
+		}
+
+		c.Status = cr.Status
+
+		return r.client.Status().Update(context.TODO(), c)
+	})
+
+	return errors.Wrap(err, "write status")
 }
 
 func (r *ReconcilePerconaServerMongoDB) rsStatus(cr *api.PerconaServerMongoDB, rsSpec *api.ReplsetSpec) (api.ReplsetStatus, error) {
-	list, err := r.getRSPods(cr, rsSpec.Name)
+	list, err := psmdb.GetRSPods(r.client, cr, rsSpec.Name)
 	if err != nil {
 		return api.ReplsetStatus{}, fmt.Errorf("get list: %v", err)
 	}
@@ -247,6 +251,10 @@ func (r *ReconcilePerconaServerMongoDB) rsStatus(cr *api.PerconaServerMongoDB, r
 
 	if rsSpec.Arbiter.Enabled {
 		status.Size += rsSpec.Arbiter.Size
+	}
+
+	if rsSpec.NonVoting.Enabled {
+		status.Size += rsSpec.NonVoting.Size
 	}
 
 	for _, pod := range list.Items {
@@ -362,7 +370,7 @@ func (r *ReconcilePerconaServerMongoDB) connectionEndpoint(cr *api.PerconaServer
 		}
 		addrs, err := psmdb.GetReplsetAddrs(r.client, cr, rs.Name, rs.Expose.Enabled, list.Items)
 		if err != nil {
-			return "", err
+			return "", errors.Wrap(err, "get replset addresses")
 		}
 		return strings.Join(addrs, ","), nil
 	}

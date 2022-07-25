@@ -40,7 +40,6 @@ func (r *ReconcilePerconaServerMongoDB) ensureExternalServices(cr *api.PerconaSe
 }
 
 func (r *ReconcilePerconaServerMongoDB) removeOutdatedServices(cr *api.PerconaServerMongoDB, replset *api.ReplsetSpec) error {
-
 	if cr.Spec.Pause {
 		return nil
 	}
@@ -57,6 +56,11 @@ func (r *ReconcilePerconaServerMongoDB) removeOutdatedServices(cr *api.PerconaSe
 				svcNames[service.Name+"-arbiter-"+strconv.Itoa(i)] = struct{}{}
 			}
 		}
+	        if replset.NonVoting.Enabled {
+	        	for i := 0; i < int(replset.NonVoting.Size); i++ {
+			        svcNames[service.Name+"-nv-"+strconv.Itoa(i)] = struct{}{}
+		        }
+	        }
 		svcNames[psmdb.GetExporterServiceName(cr, replset)] = struct{}{}
 	} else {
 		// Keep cluster service
