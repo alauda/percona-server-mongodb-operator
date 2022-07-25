@@ -19,18 +19,23 @@ import (
 
 func (r *ReconcilePerconaServerMongoDB) reconcileBackupTasks(cr *api.PerconaServerMongoDB) error {
 	ctasks := make(map[string]api.BackupTaskSpec)
+	ls := backup.NewBackupCronJobLabels(cr.Name)
 
 	for _, task := range cr.Spec.Backup.Tasks {
-		cjob := backup.BackupCronJob(&task, cr.Name, cr.Namespace, cr.Spec.Backup, cr.Spec.ImagePullSecrets)
+		cjob, err := backup.BackupCronJob(&task, cr.Name, cr.Namespace, cr.Spec.Backup, cr.Spec.ImagePullSecrets)
+		if err != nil {
+			return errors.Wrap(err, "can't create job")
+		}
+		ls = cjob.ObjectMeta.Labels
 		if task.Enabled {
 			ctasks[cjob.Name] = task
 
-			err := setControllerReference(cr, cjob, r.scheme)
+			err := setControllerReference(cr, &cjob, r.scheme)
 			if err != nil {
 				return errors.Wrap(err, "set owner reference for backup task "+cjob.Name)
 			}
 
-			err = r.createOrUpdate(cjob)
+			err = r.createOrUpdate(&cjob)
 			if err != nil {
 				return errors.Wrap(err, "create or update backup job")
 			}
@@ -43,7 +48,7 @@ func (r *ReconcilePerconaServerMongoDB) reconcileBackupTasks(cr *api.PerconaServ
 		tasksList,
 		&client.ListOptions{
 			Namespace:     cr.Namespace,
-			LabelSelector: labels.SelectorFromSet(backup.BackupCronJobLabelSelectors(cr.Name)),
+			LabelSelector: labels.SelectorFromSet(ls),
 		},
 	)
 	if err != nil {
@@ -201,6 +206,10 @@ func (r *ReconcilePerconaServerMongoDB) hasFullBackup(cr *api.PerconaServerMongo
 }
 
 func (r *ReconcilePerconaServerMongoDB) updatePITR(cr *api.PerconaServerMongoDB) error {
+	if !cr.Spec.Backup.Enabled {
+		return nil
+	}
+
 	// pitr is disabled right before restore so it must not be re-enabled during restore
 	isRestoring, err := r.isRestoreRunning(cr)
 	if err != nil {

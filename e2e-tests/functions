@@ -5,7 +5,7 @@ BASH_XTRACEFD="5"
 
 GIT_COMMIT=$(git rev-parse HEAD)
 GIT_BRANCH=${VERSION:-$(git rev-parse --abbrev-ref HEAD | sed -e 's^/^-^g; s^[.]^-^g;' | sed -e 's/_/-/g' | tr '[:upper:]' '[:lower:]')}
-API="psmdb.percona.com/v1-9-0"
+API="psmdb.percona.com/v1-10-0"
 IMAGE=${IMAGE:-"perconalab/percona-server-mongodb-operator:${GIT_BRANCH}"}
 IMAGE_PMM=${IMAGE_PMM:-"perconalab/pmm-client:dev-latest"}
 IMAGE_MONGOD=${IMAGE_MONGOD:-"perconalab/percona-server-mongodb-operator:main-mongod4.4"}
@@ -354,7 +354,11 @@ deploy_chaos_mesh() {
 	local chaos_mesh_ns=$1
 
 	desc 'install chaos-mesh'
-	helm del chaos-mesh --namespace ${chaos_mesh_ns} || :
+	local old_cm_namespace=$(helm list --all-namespaces --filter chaos-mesh | tail -n1 | awk -F' ' '{print $2}')
+	if [ "${old_cm_namespace}" != "NAMESPACE" ]; then
+		destroy_chaos_mesh "${old_cm_namespace}"
+	fi
+
 	helm repo add chaos-mesh https://charts.chaos-mesh.org
 	if version_gt "1.19"; then
 		helm install chaos-mesh chaos-mesh/chaos-mesh --namespace=${chaos_mesh_ns} --set chaosDaemon.runtime=containerd --set chaosDaemon.socketPath=/run/containerd/containerd.sock --set dashboard.create=false --version 0.5.1 --set clusterScoped=false --set controllerManager.targetNamespace=${chaos_mesh_ns}
@@ -368,7 +372,10 @@ destroy_chaos_mesh() {
 	local chaos_mesh_ns=$1
 
 	desc 'destroy chaos-mesh'
-	helm del chaos-mesh --namespace ${chaos_mesh_ns} || :
+	helm uninstall chaos-mesh --namespace ${chaos_mesh_ns} || :
+	timeout 30 kubectl_bin delete --grace-period=0 --force=true crd awschaos.chaos-mesh.org dnschaos.chaos-mesh.org httpchaos.chaos-mesh.org iochaos.chaos-mesh.org jvmchaos.chaos-mesh.org kernelchaos.chaos-mesh.org networkchaos.chaos-mesh.org podchaos.chaos-mesh.org podiochaos.chaos-mesh.org podnetworkchaos.chaos-mesh.org stresschaos.chaos-mesh.org timechaos.chaos-mesh.org || :
+	timeout 30 kubectl_bin delete --grace-period=0 --force=true clusterrolebinding chaos-mesh-chaos-controller-manager-cluster-level || :
+	timeout 30 kubectl_bin delete --grace-period=0 --force=true clusterrole chaos-mesh-chaos-controller-manager-cluster-level chaos-mesh-chaos-controller-manager-target-namespace || :
 }
 
 retry() {
@@ -401,6 +408,12 @@ wait_for_running() {
 			wait_pod ${name}-${i}
 		fi
 	done
+	if [[ $(kubectl_bin get psmdb ${cluster_name} -o jsonpath='{.spec.replsets[?(@.name=="'${rs_name}'")].non_voting.enabled}') == "true" ]]; then
+		last_pod=$(($(kubectl_bin get psmdb ${cluster_name} -o jsonpath='{.spec.replsets[?(@.name=="'${rs_name}'")].non_voting.size}') - 1))
+		for i in $(seq 0 $last_pod); do
+			wait_pod ${name}-nv-${i}
+		done
+	fi
 	sleep 10
 	if [[ ${check_cluster_readyness} == "true" ]]; then
 		set +x
@@ -495,6 +508,13 @@ compare_kubectl() {
 		| $sed "s#^apiVersion: extensions/v1beta1#apiVersion: apps/v1#" \
 		| $sed "s#^apiVersion: batch/v1beta1#apiVersion: batch/v1#" \
 			>${new_result}
+
+	if version_gt "1.22"; then
+		yq d -i ${new_result} 'spec.internalTrafficPolicy'
+		if [[ $expected_result == */cronjob* ]]; then
+			yq d -i ${new_result} 'metadata.generation'
+		fi
+	fi
 
 	diff -u "$expected_result" "$new_result"
 }
@@ -620,6 +640,9 @@ compare_mongo_user() {
 	fi
 	if [[ $IMAGE_MONGOD =~ 4\.4 ]] && [ -f ${test_dir}/compare/$user-44.json ]; then
 		expected_result=${test_dir}/compare/$user-44.json
+	fi
+	if [[ $IMAGE_MONGOD =~ 5\.0 ]] && [ -f ${test_dir}/compare/$user-50.json ]; then
+		expected_result=${test_dir}/compare/$user-50.json
 	fi
 
 	run_mongo 'db.runCommand({connectionStatus:1,showPrivileges:true})' "$uri" \

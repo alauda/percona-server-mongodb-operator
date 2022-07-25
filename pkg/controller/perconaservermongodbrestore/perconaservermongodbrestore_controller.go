@@ -163,6 +163,10 @@ func (r *ReconcilePerconaServerMongoDBRestore) reconcileRestore(cr *psmdbv1.Perc
 		return status, errors.Wrapf(err, "get cluster %s/%s", cr.Namespace, cr.Spec.ClusterName)
 	}
 
+	if cluster.Spec.Unmanaged {
+		return status, errors.New("cluster is unmanaged")
+	}
+
 	cjobs, err := backup.HasActiveJobs(r.client, cluster, backup.NewRestoreJob(cr), backup.NotPITRLock)
 	if err != nil {
 		return status, errors.Wrap(err, "check for concurrent jobs")
@@ -222,7 +226,12 @@ func (r *ReconcilePerconaServerMongoDBRestore) reconcileRestore(cr *psmdbv1.Perc
 			return status, errors.Wrap(err, "get storage")
 		}
 
-		err = pbmc.SetConfig(storage, cluster.Spec.Backup.PITR.Disabled())
+		priorities, err := pbmc.GetPriorities(r.client, cluster)
+		if err != nil {
+			return status, errors.Wrap(err, "get pbm priorities")
+		}
+
+		err = pbmc.SetConfig(storage, cluster.Spec.Backup.PITR.Disabled(), priorities)
 		if err != nil {
 			return status, errors.Wrap(err, "set pbm config")
 		}

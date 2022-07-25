@@ -1,9 +1,9 @@
-apiVersion: psmdb.percona.com/v1-9-0
+apiVersion: psmdb.percona.com/v1-10-0
 kind: PerconaServerMongoDB
 metadata:
   name: my-cluster-name
 spec:
-  crVersion: 1.9.0
+  crVersion: 1.10.0
   image: >-
     build-harbor.alauda.cn/middleware/percona-server-mongodb:v4.2.17-mongodb
   imagePullPolicy: Always
