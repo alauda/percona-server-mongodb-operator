@@ -6,6 +6,7 @@ metadata:
   labels:
     operatorframework.io/arch.amd64: supported
     operatorframework.io/arch.arm64: supported
+    team.operator: dataservices
     name.operator: percona-server-mongodb-operator
   annotations:
     alm-examples: '[]'
