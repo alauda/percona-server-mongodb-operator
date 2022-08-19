@@ -7,6 +7,7 @@ import (
 
 	"github.com/percona/percona-backup-mongodb/pbm"
 	"github.com/percona/percona-server-mongodb-operator/pkg/psmdb"
+	"github.com/percona/percona-server-mongodb-operator/version"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 
 	"github.com/pkg/errors"
@@ -178,6 +179,11 @@ func (r *ReconcilePerconaServerMongoDBBackup) reconcile(cr *psmdbv1.PerconaServe
 	err := r.client.Get(context.TODO(), types.NamespacedName{Name: cr.Spec.PSMDBCluster, Namespace: cr.Namespace}, cluster)
 	if err != nil {
 		return status, errors.Wrapf(err, "get cluster %s/%s", cr.Namespace, cr.Spec.PSMDBCluster)
+	}
+
+	err = cluster.CheckNSetDefaults(version.PlatformKubernetes, log)
+	if err != nil {
+		return status, errors.Wrap(err, "wrong psmdb options")
 	}
 
 	if err := cluster.CanBackup(); err != nil {

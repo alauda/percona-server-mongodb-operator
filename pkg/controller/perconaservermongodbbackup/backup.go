@@ -7,6 +7,7 @@ import (
 	"github.com/percona/percona-backup-mongodb/pbm"
 	api "github.com/percona/percona-server-mongodb-operator/pkg/apis/psmdb/v1"
 	"github.com/percona/percona-server-mongodb-operator/pkg/psmdb/backup"
+	"github.com/percona/percona-server-mongodb-operator/version"
 	"github.com/pkg/errors"
 	k8serrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -27,6 +28,11 @@ func (r *ReconcilePerconaServerMongoDBBackup) newBackup(cr *api.PerconaServerMon
 		} else {
 			return nil, errors.Wrapf(err, "get cluster %s/%s", cr.Namespace, cr.Spec.PSMDBCluster)
 		}
+	}
+
+	err = cluster.CheckNSetDefaults(version.PlatformKubernetes, log)
+	if err != nil {
+		return nil, errors.Wrap(err, "wrong psmdb options")
 	}
 
 	cn, err := backup.NewPBM(r.client, cluster)
