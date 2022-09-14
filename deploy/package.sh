@@ -66,7 +66,8 @@ echo -e "Prepare upload tool mc...\n"
 curl https://dl.minio.io/client/mc/release/linux-amd64/mc -o mc
 chmod +x mc
 echo -e "package \${OUTDIR}.tar done, start uploading...\n"
-./mc config host add idc http://192.168.144.3:28001 8WNE7DivYUg3Bb4CnzQS V8l9iWqJpdWpKNURRKOzmgD8PVOPJcodA7CjyFst --api s3v2
+# Remember to update below key&secret before use
+./mc config host add idc http://192.168.144.3:28001 S3KEY S3SECRET --api s3v2
 ./mc cp \${OUTDIR}".tar" idc/3.0/ 
 echo -e "Upload finished succesfully!\n"
 
